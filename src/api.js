@@ -86,6 +86,10 @@ function sanitizeUser(u) {
   return out;
 }
 
+function userIsInMatch(matchId, userId) {
+  return store.getMatchPlayers(matchId).some((p) => p.user_id === userId);
+}
+
 // ============================================================
 // AUTH
 // ============================================================
@@ -213,8 +217,10 @@ router.get('/matches', auth, (req, res) => {
   const matches = store.getMatchesForUser(req.user.id).map(m => {
     const course = store.getCourse(m.course_id);
     const junkOn = !!m.junk_enabled;
+    const status = normalizeMatchStatus(m.status);
     return {
       ...m,
+      status,
       junk_enabled: junkOn,
       junkEnabled: junkOn,
       course_name: course?.name,
@@ -227,6 +233,9 @@ router.get('/matches', auth, (req, res) => {
 router.get('/matches/:id', auth, (req, res) => {
   const detail = store.getMatchDetail(req.params.id);
   if (!detail) return res.status(404).json({ error: 'Not found' });
+  if (!userIsInMatch(req.params.id, req.user.id)) {
+    return res.status(403).json({ error: 'Not part of this match' });
+  }
   res.json(detail);
 });
 
@@ -250,6 +259,13 @@ function normalizeStampedeQuota(v) {
 }
 
 const MATCH_GAME_TYPES = new Set(['skins', 'match_play', 'stroke_play', 'nassau', 'stampede', 'teams']);
+
+function normalizeMatchStatus(status) {
+  const s = String(status || '').toLowerCase();
+  if (s === 'active' || s === 'in_progress') return 'in_progress';
+  if (s === 'completed' || s === 'finished') return 'finished';
+  return status || 'in_progress';
+}
 
 function normalizeMatchPlayerTeamIndex(v) {
   const n = Number(v);
@@ -282,7 +298,7 @@ router.post('/matches', auth, (req, res) => {
   const match = store.insert('matches', {
     course_id: courseId, created_by: req.user.id, name,
     tee_time: teeTime || new Date().toISOString(),
-    current_hole: 1, status: 'active', scoring_mode,
+    current_hole: 1, status: 'in_progress', scoring_mode,
     tee_set_id: teeSetId || null,
     game_type: persistedGameType,
     junk_enabled: junkOn,
@@ -511,11 +527,12 @@ router.post('/matches', auth, (req, res) => {
   // Only one "your" active round: retire older matches you created so the scorecard
   // does not reopen a stale round after you start a new one.
   for (const m of store.getMatchesForUser(req.user.id)) {
-    if (m.id === match.id || m.status !== 'active') continue;
+    if (m.id === match.id || normalizeMatchStatus(m.status) !== 'in_progress') continue;
     if (m.created_by === req.user.id) {
       store.update('matches', m.id, { status: 'abandoned' });
     }
   }
+  store.persistNow();
   res.status(201).json(store.getMatchDetail(match.id));
 });
 
@@ -526,26 +543,31 @@ router.post('/matches/:id/finish', auth, (req, res) => {
   if (!players.some(p => p.user_id === req.user.id)) {
     return res.status(403).json({ error: 'Not part of this match' });
   }
-  if (match.status === 'completed') {
+  if (normalizeMatchStatus(match.status) === 'finished') {
     return res.json(store.getMatchDetail(req.params.id));
   }
   store.finishMatch(req.params.id);
+  store.persistNow();
   res.json(store.getMatchDetail(req.params.id));
 });
 
 router.patch('/matches/:id', auth, (req, res) => {
   const current = store.getMatch(req.params.id);
   if (!current) return res.status(404).json({ error: 'Not found' });
+  if (!userIsInMatch(req.params.id, req.user.id)) {
+    return res.status(403).json({ error: 'Not part of this match' });
+  }
 
   if (req.body.finish === true) {
     const players = store.getMatchPlayers(req.params.id);
     if (!players.some(p => p.user_id === req.user.id)) {
       return res.status(403).json({ error: 'Not part of this match' });
     }
-    if (current.status === 'completed') {
+    if (normalizeMatchStatus(current.status) === 'finished') {
       return res.json(store.getMatchDetail(req.params.id));
     }
     store.finishMatch(req.params.id);
+    store.persistNow();
     return res.json(store.getMatchDetail(req.params.id));
   }
 
@@ -578,6 +600,7 @@ router.patch('/matches/:id', auth, (req, res) => {
 
   const match = store.update('matches', req.params.id, updates);
   if (!match) return res.status(404).json({ error: 'Not found' });
+  store.persistNow();
   res.json(store.getMatchDetail(match.id));
 });
 
@@ -598,6 +621,7 @@ router.post('/matches/:id/players', auth, (req, res) => {
     junk_marks_for: 0,
     junk_marks_against: 0,
   };
+  store.persistNow();
   res.status(201).json({ ok: true });
 });
 
@@ -607,6 +631,9 @@ router.post('/matches/:id/players', auth, (req, res) => {
 router.get('/matches/:matchId/scores', auth, (req, res) => {
   const match = store.getMatch(req.params.matchId);
   if (!match) return res.status(404).json({ error: 'Match not found' });
+  if (!userIsInMatch(req.params.matchId, req.user.id)) {
+    return res.status(403).json({ error: 'Not part of this match' });
+  }
 
   const teeSet = match.tee_set_id ? store.getTeeSet(match.tee_set_id) : null;
   const holes = teeSet ? store.getHolesForTeeSet(teeSet.id) : [];
@@ -766,6 +793,10 @@ router.post('/matches/:matchId/scores', auth, (req, res) => {
   if (!inMatch) return res.status(400).json({ error: 'User is not in this match' });
 
   const match = store.getMatch(req.params.matchId);
+  if (!match) return res.status(404).json({ error: 'Match not found' });
+  if (!userIsInMatch(req.params.matchId, req.user.id)) {
+    return res.status(403).json({ error: 'Not part of this match' });
+  }
   const holes = match?.tee_set_id ? store.getHolesForTeeSet(match.tee_set_id) : [];
   const hole = holes.find(h => Number(h.hole_number) === hn);
   const par = hole?.par ?? 4;
@@ -831,6 +862,7 @@ router.post('/matches/:matchId/scores', auth, (req, res) => {
   score.label = hole ? store.scoreLabel(strokes, hole.par) : null;
   score.par = hole?.par;
 
+  store.persistNow();
   res.status(201).json(score);
 });
 
@@ -838,6 +870,9 @@ router.post('/matches/:matchId/scores', auth, (req, res) => {
 // BETS
 // ============================================================
 router.get('/matches/:matchId/bets', auth, (req, res) => {
+  if (!userIsInMatch(req.params.matchId, req.user.id)) {
+    return res.status(403).json({ error: 'Not part of this match' });
+  }
   res.json(store.getBetsForMatch(req.params.matchId));
 });
 
@@ -847,6 +882,9 @@ router.post('/matches/:matchId/bets', auth, (req, res) => {
   const { name, amount } = req.body;
   const match = store.getMatch(req.params.matchId);
   if (!match) return res.status(404).json({ error: 'Match not found' });
+  if (!userIsInMatch(req.params.matchId, req.user.id)) {
+    return res.status(403).json({ error: 'Not part of this match' });
+  }
   if (betType === 'teams' && String(match.game_type || '').toLowerCase() !== 'teams') {
     return res.status(400).json({ error: 'Teams wagers are only for matches started in Teams format' });
   }
@@ -880,6 +918,7 @@ router.post('/matches/:matchId/bets', auth, (req, res) => {
       accepted: true, net_result: 0, display_name: p.display_name,
     };
   }
+  store.persistNow();
   res.status(201).json(store.getBetsForMatch(req.params.matchId).find(b => b.id === bet.id));
 });
 
@@ -901,6 +940,7 @@ router.post('/wallet/deposit', auth, (req, res) => {
   if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid amount' });
   const wallet = store.deposit(req.user.id, amount);
   if (!wallet) return res.status(400).json({ error: 'Deposit failed' });
+  store.persistNow();
   res.json(wallet);
 });
 
@@ -909,6 +949,7 @@ router.post('/wallet/withdraw', auth, (req, res) => {
   if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid amount' });
   const wallet = store.withdraw(req.user.id, amount);
   if (!wallet) return res.status(400).json({ error: 'Insufficient balance' });
+  store.persistNow();
   res.json(wallet);
 });
 

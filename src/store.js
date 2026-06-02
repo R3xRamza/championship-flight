@@ -4,29 +4,84 @@
  */
 const { v4: uuid } = require('uuid');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
 
 // ============================================================
 // DATA TABLES (plain JS objects keyed by id)
 // ============================================================
-const db = {
-  users: {},
-  courses: {},
-  teeSets: {},
-  teeHoles: {},    // keyed by `${teeSetId}:${holeNumber}`
-  matches: {},
-  matchPlayers: {}, // keyed by `${matchId}:${userId}`
-  scores: {},       // keyed by `${matchId}:${userId}:${holeNumber}`
-  bets: {},
-  betParticipants: {}, // keyed by `${betId}:${userId}`
-  skinsResults: {},    // keyed by `${betId}:${holeNumber}`
-  betSettlements: {},  // keyed by `${betId}:${holeNumber}`
-  junkSettlements: {}, // keyed by `${matchId}:${holeNumber}` — hole closed for junk ledger
-  junkSegmentSettlements: {}, // `${matchId}:front` | `${matchId}:back` — snake/worm paid for that side
-  wallets: {},         // keyed by userId
-  transactions: [],
-  /** Undirected edges: key `${id}|${id}` lexicographically sorted UUIDs */
-  friendPairs: {},
-};
+const STORE_FILE = process.env.STORE_FILE || path.join(__dirname, '..', 'data', 'store.json');
+
+function createEmptyDb() {
+  return {
+    users: {},
+    courses: {},
+    teeSets: {},
+    teeHoles: {},    // keyed by `${teeSetId}:${holeNumber}`
+    matches: {},
+    matchPlayers: {}, // keyed by `${matchId}:${userId}`
+    scores: {},       // keyed by `${matchId}:${userId}:${holeNumber}`
+    bets: {},
+    betParticipants: {}, // keyed by `${betId}:${userId}`
+    skinsResults: {},    // keyed by `${betId}:${holeNumber}`
+    betSettlements: {},  // keyed by `${betId}:${holeNumber}`
+    junkSettlements: {}, // keyed by `${matchId}:${holeNumber}` — hole closed for junk ledger
+    junkSegmentSettlements: {}, // `${matchId}:front` | `${matchId}:back` — snake/worm paid for that side
+    wallets: {},         // keyed by userId
+    transactions: [],
+    /** Undirected edges: key `${id}|${id}` lexicographically sorted UUIDs */
+    friendPairs: {},
+  };
+}
+
+let db = createEmptyDb();
+let persistTimer = null;
+
+function normalizeMatchStatus(status) {
+  const s = String(status || '').toLowerCase();
+  if (s === 'active' || s === 'in_progress') return 'in_progress';
+  if (s === 'completed' || s === 'finished') return 'finished';
+  return status || 'in_progress';
+}
+
+function normalizeDbInPlace(targetDb) {
+  const matches = targetDb?.matches || {};
+  for (const id of Object.keys(matches)) {
+    matches[id].status = normalizeMatchStatus(matches[id].status);
+  }
+}
+
+function persistNow() {
+  try {
+    fs.mkdirSync(path.dirname(STORE_FILE), { recursive: true });
+    fs.writeFileSync(STORE_FILE, JSON.stringify(db, null, 2));
+  } catch (err) {
+    console.error('Failed to persist data store:', err.message);
+  }
+}
+
+function schedulePersist() {
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    persistNow();
+  }, 20);
+}
+
+function hydrateFromDisk() {
+  if (!fs.existsSync(STORE_FILE)) return false;
+  try {
+    const raw = fs.readFileSync(STORE_FILE, 'utf8');
+    if (!raw || !raw.trim()) return false;
+    const parsed = JSON.parse(raw);
+    db = { ...createEmptyDb(), ...parsed };
+    normalizeDbInPlace(db);
+    return true;
+  } catch (err) {
+    console.error('Failed to hydrate data store:', err.message);
+    return false;
+  }
+}
 
 // ============================================================
 // HELPERS
@@ -37,12 +92,20 @@ function findOne(table, predicate) { return values(table).find(predicate); }
 function insert(table, record) {
   if (!record.id) record.id = uuid();
   record.created_at = record.created_at || new Date().toISOString();
+  if (table === 'matches') {
+    record.status = normalizeMatchStatus(record.status);
+  }
   db[table][record.id] = record;
+  schedulePersist();
   return record;
 }
 function update(table, id, updates) {
   if (!db[table][id]) return null;
   Object.assign(db[table][id], updates, { updated_at: new Date().toISOString() });
+  if (table === 'matches') {
+    db[table][id].status = normalizeMatchStatus(db[table][id].status);
+  }
+  schedulePersist();
   return db[table][id];
 }
 
@@ -60,6 +123,7 @@ function recordFriendshipPair(userIdA, userIdB) {
     user_id_b: userIdB,
     created_at: new Date().toISOString(),
   };
+  schedulePersist();
   return true;
 }
 
@@ -183,6 +247,7 @@ function addWalletDelta(userId, amount, type, description) {
     description,
     created_at: new Date().toISOString(),
   });
+  schedulePersist();
 }
 
 const HOLES_FRONT9 = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -594,7 +659,7 @@ function seedData() {
   const match = insert('matches', {
     course_id: utCourse.id, created_by: rex.id,
     name: 'Saturday Skins', tee_time: new Date().toISOString(),
-    current_hole: 7, status: 'active', scoring_mode: 'gross',
+    current_hole: 7, status: 'in_progress', scoring_mode: 'gross',
     tee_set_id: harveyId,
     game_type: 'skins',
     junk_enabled: true,
@@ -667,13 +732,18 @@ function seedData() {
   return { rex, timothy, ricky, holt, utCourse, match, teeSetMap, skinsBet };
 }
 
-const seeded = seedData();
+const hydrated = hydrateFromDisk();
+const seeded = hydrated
+  ? { hydrated: true }
+  : seedData();
+if (!hydrated) persistNow();
 
 // ============================================================
 // PUBLIC API (used by routes)
 // ============================================================
 module.exports = {
   db, seeded, values, find, findOne, insert, update, uuid,
+  persistNow,
   scoreLabel, courseHandicap, getNetStrokes,
   allocateNetStrokesByHole, stampedeHolePoints,
 
@@ -818,6 +888,7 @@ module.exports = {
         created_at: new Date().toISOString(),
       };
     }
+    schedulePersist();
     return db.scores[key];
   },
 
@@ -1235,7 +1306,7 @@ module.exports = {
       module.exports.update('bets', b.id, { status: 'completed' });
     });
     return module.exports.update('matches', matchId, {
-      status: 'completed',
+      status: 'finished',
       current_hole: 18,
       finished_at: new Date().toISOString(),
     });
@@ -1256,6 +1327,7 @@ module.exports = {
       type: 'deposit', amount, description: 'Wallet deposit',
       created_at: new Date().toISOString(),
     });
+    schedulePersist();
     return w;
   },
   withdraw(userId, amount) {
@@ -1267,6 +1339,7 @@ module.exports = {
       type: 'withdrawal', amount, description: 'Wallet withdrawal',
       created_at: new Date().toISOString(),
     });
+    schedulePersist();
     return w;
   },
 
@@ -1288,6 +1361,7 @@ module.exports = {
     const wormHolder = match.worm_holder_id ? db.users[match.worm_holder_id] : null;
     return {
       ...match,
+      status: normalizeMatchStatus(match.status),
       junk_enabled: junkOn,
       junkEnabled: junkOn,
       snake_tally: Number(match.snake_tally) || 0,

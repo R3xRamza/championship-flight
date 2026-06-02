@@ -216,7 +216,10 @@ const API = (() => {
  */
 function pickActiveMatchForUser(matches, userId) {
   if (!Array.isArray(matches)) return null;
-  const actives = matches.filter((m) => m.status === 'active');
+  const actives = matches.filter((m) => {
+    const s = String(m?.status || '').toLowerCase();
+    return s === 'active' || s === 'in_progress';
+  });
   if (!actives.length) return null;
   let pool = actives;
   if (userId) {
@@ -1448,6 +1451,7 @@ function betRulesHint(b) {
 const ScorecardScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [matchData, setMatchData] = useState(null);
   const [scoreData, setScoreData] = useState(null);
@@ -1461,22 +1465,27 @@ const ScorecardScreen = () => {
   const [finishing, setFinishing] = useState(false);
   const [finishRoundAwaitingConfirm, setFinishRoundAwaitingConfirm] = useState(false);
   const finishConfirmTimeoutRef = useRef(null);
+  const requestedMatchId = (searchParams.get('matchId') || '').trim();
+  const requestedMode = (searchParams.get('mode') || '').trim().toLowerCase();
 
   const loadData = useCallback(async () => {
     try {
       const matches = await API.getMatches();
-      const active = pickActiveMatchForUser(matches, user?.id);
-      if (!active) {
+      const targetFromQuery = requestedMatchId
+        ? matches.find((m) => String(m.id) === String(requestedMatchId))
+        : null;
+      const target = targetFromQuery || pickActiveMatchForUser(matches, user?.id);
+      if (!target) {
         setMatchData(null);
         setScoreData(null);
         setBets([]);
         setLoading(false);
         return;
       }
-      const match = await API.getMatch(active.id);
+      const match = await API.getMatch(target.id);
       const [scores, betsFromEndpoint] = await Promise.all([
-        API.getScores(active.id),
-        API.getBets(active.id).catch((err) => {
+        API.getScores(target.id),
+        API.getBets(target.id).catch((err) => {
           console.error('getBets failed; falling back to match.bets if present', err);
           return null;
         }),
@@ -1491,7 +1500,7 @@ const ScorecardScreen = () => {
       console.error(e);
     }
     setLoading(false);
-  }, [user?.id]);
+  }, [requestedMatchId, user?.id]);
 
   useEffect(() => {
     loadData();
@@ -1524,6 +1533,15 @@ const ScorecardScreen = () => {
       navigate('/new-match', { replace: true });
     }
   }, [loading, matchData, scoreData, navigate]);
+
+  useEffect(() => {
+    if (!loading && matchData && requestedMode === 'resume') {
+      const s = String(matchData.status || '').toLowerCase();
+      if (!(s === 'active' || s === 'in_progress')) {
+        window.alert('This round is no longer in progress.');
+      }
+    }
+  }, [loading, matchData, requestedMode]);
 
   const closeScoreModal = () => {
     setScoreModal(null);
@@ -3790,12 +3808,7 @@ const LeaderboardScreen = () => {
             }
           })
         );
-        const withScores = enriched.filter(
-          (x) =>
-            x.scoreData &&
-            (x.scoreData.scoreboard || []).some((p) => (p.holes || []).some((h) => h.strokes != null))
-        );
-        if (!cancelled) setRoundHistory(withScores);
+        if (!cancelled) setRoundHistory(enriched);
       } catch (e) {
         console.error(e);
         if (!cancelled) setRoundHistory([]);
@@ -3862,7 +3875,7 @@ const LeaderboardScreen = () => {
               <p className="font-label text-xs uppercase tracking-widest text-secondary font-bold">Your history</p>
               <h2 className="font-headline italic text-3xl md:text-4xl -tracking-tight text-primary">Previous rounds</h2>
               <p className="text-on-surface-variant text-sm max-w-xl">
-                Scorecards from matches you&apos;ve played, newest first. Open a round for the full match summary.
+                Saved rounds from matches you&apos;ve played, newest first. Resume in-progress rounds or edit finished ones.
               </p>
             </div>
           </div>
@@ -3898,8 +3911,11 @@ const LeaderboardScreen = () => {
                   : '';
                 const holesCount = (scoreData.holes || []).length;
                 const parTotal = (scoreData.holes || []).reduce((s, h) => s + h.par, 0);
-                const completed = match.status === 'completed';
+                const status = String(match.status || '').toLowerCase();
+                const completed = status === 'completed' || status === 'finished';
                 const abandoned = match.status === 'abandoned';
+                const inProgress = !completed && !abandoned;
+                const canEdit = completed;
                 return (
                   <article
                     key={match.id}
@@ -3947,13 +3963,24 @@ const LeaderboardScreen = () => {
                           )}
                         </p>
                       </div>
-                      <Link
-                        to={`/match-summary/${match.id}`}
-                        className="shrink-0 inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all"
-                      >
-                        Full summary
-                        <span className="material-symbols-outlined text-sm">chevron_right</span>
-                      </Link>
+                      <div className="shrink-0 flex items-center gap-2">
+                        {(inProgress || canEdit) && (
+                          <Link
+                            to={`/scorecard?matchId=${match.id}&mode=${inProgress ? 'resume' : 'edit'}`}
+                            className="inline-flex items-center justify-center gap-2 bg-secondary-fixed text-on-secondary-fixed px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all"
+                          >
+                            {inProgress ? 'Resume' : 'Edit'}
+                            <span className="material-symbols-outlined text-sm">play_arrow</span>
+                          </Link>
+                        )}
+                        <Link
+                          to={`/match-summary/${match.id}`}
+                          className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all"
+                        >
+                          Full summary
+                          <span className="material-symbols-outlined text-sm">chevron_right</span>
+                        </Link>
+                      </div>
                     </div>
                     <div className="p-4 md:p-6">
                       <div className="flex items-center justify-between mb-3">
