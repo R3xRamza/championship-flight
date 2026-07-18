@@ -2,10 +2,12 @@
 <html lang="en" class="">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+    <meta name="theme-color" content="#0B2E22"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
     <title>Championship Flight - Golf Social & Betting</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500;1,9..144,700&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -19,85 +21,121 @@
         theme: {
           extend: {
             colors: {
-              "primary-fixed": "#c1ecd4",
-              "secondary-fixed-dim": "#e9c349",
-              "on-secondary-fixed-variant": "#574500",
-              "surface-container-lowest": "#ffffff",
-              "surface-container-high": "#e7e8e9",
-              "secondary-fixed": "#ffe088",
-              "on-primary-container": "#86af99",
-              "primary": "#1B4332",
-              "primary-fixed-dim": "#a5d0b9",
-              "on-tertiary-container": "#a7a891",
+              "primary-fixed": "#B8DCC8",
+              "secondary-fixed-dim": "#D4B56A",
+              "on-secondary-fixed-variant": "#3D2F0A",
+              "surface-container-lowest": "#FFFFFF",
+              "surface-container-high": "#DDE5E0",
+              "secondary-fixed": "#E8C97A",
+              "on-primary-container": "#8FB5A0",
+              "primary": "#0B2E22",
+              "primary-fixed-dim": "#95C4AB",
+              "on-tertiary-container": "#A7A891",
               "on-tertiary": "#ffffff",
-              "secondary-container": "#fed65b",
-              "on-surface-variant": "#414844",
-              "on-secondary-fixed": "#241a00",
+              "secondary-container": "#E8C97A",
+              "on-surface-variant": "#3A4540",
+              "on-secondary-fixed": "#1F1800",
               "on-error": "#ffffff",
               "tertiary-fixed-dim": "#c8c8b0",
               "on-tertiary-fixed-variant": "#474836",
-              "surface-container-low": "#f3f4f5",
-              "surface-container": "#edeeef",
+              "surface-container-low": "#E8EEEA",
+              "surface-container": "#E0E8E3",
               "tertiary-fixed": "#e4e4cc",
               "on-tertiary-fixed": "#1b1d0e",
               "tertiary": "#262718",
               "on-primary": "#ffffff",
               "error-container": "#ffdad6",
-              "primary-container": "#1b4332",
-              "surface-bright": "#f8f9fa",
-              "background": "#f8f9fa",
-              "inverse-surface": "#2e3132",
-              "outline-variant": "#c1c8c2",
-              "inverse-primary": "#a5d0b9",
-              "surface-container-highest": "#e1e3e4",
-              "surface": "#f8f9fa",
-              "on-background": "#191c1d",
-              "inverse-on-surface": "#f0f1f2",
-              "surface-variant": "#e1e3e4",
-              "surface-tint": "#3f6653",
+              "primary-container": "#163C2E",
+              "surface-bright": "#F3F7F4",
+              "background": "#F3F7F4",
+              "inverse-surface": "#1A2420",
+              "outline-variant": "#B5C2BB",
+              "inverse-primary": "#95C4AB",
+              "surface-container-highest": "#D2DCD6",
+              "surface": "#F3F7F4",
+              "on-background": "#14201B",
+              "inverse-on-surface": "#F0F4F1",
+              "surface-variant": "#D2DCD6",
+              "surface-tint": "#2F5C48",
               "on-secondary": "#ffffff",
               "on-error-container": "#93000a",
               "on-primary-fixed": "#002114",
-              "secondary": "#735c00",
-              "surface-dim": "#d9dadb",
+              "secondary": "#8A6F1F",
+              "surface-dim": "#C8D2CC",
               "on-primary-fixed-variant": "#274e3d",
-              "outline": "#717973",
-              "on-surface": "#191c1d",
-              "error": "#ba1a1a",
+              "outline": "#6B7871",
+              "on-surface": "#14201B",
+              "error": "#B42318",
               "tertiary-container": "#3c3d2c",
-              "on-secondary-container": "#745c00"
+              "on-secondary-container": "#5C4A12",
+              "fairway": "#1F6B4A",
+              "sand": "#C4A35A"
             },
             fontFamily: {
-              "headline": ["Newsreader", "serif"],
-              "body": ["Manrope", "sans-serif"],
-              "label": ["Manrope", "sans-serif"]
+              "headline": ["Fraunces", "Georgia", "serif"],
+              "body": ["Figtree", "sans-serif"],
+              "label": ["Figtree", "sans-serif"]
             },
-            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
           },
         },
       }
     </script>
     <style>
+        :root {
+          --cf-green: #0B2E22;
+          --cf-green-mid: #163C2E;
+          --cf-fairway: #1F6B4A;
+          --cf-sand: #C4A35A;
+          --cf-paper: #F3F7F4;
+          --cf-ink: #14201B;
+          --safe-top: env(safe-area-inset-top, 0px);
+          --safe-bottom: env(safe-area-inset-bottom, 0px);
+          --header-h: calc(3.25rem + var(--safe-top));
+          --nav-h: calc(4.25rem + var(--safe-bottom));
+        }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .birdie-circle { border: 2px solid #1B4332; border-radius: 9999px; }
-        .eagle-circle { border: 2px double #1B4332; border-radius: 9999px; }
-        .bogey-square { border: 2px solid #ba1a1a; border-radius: 3px; }
-        .dbl-bogey-square { border: 2px double #ba1a1a; border-radius: 3px; }
+        .birdie-circle { border: 2px solid #0B2E22; border-radius: 9999px; }
+        .eagle-circle { border: 2px double #0B2E22; border-radius: 9999px; }
+        .bogey-square { border: 2px solid #B42318; border-radius: 3px; }
+        .dbl-bogey-square { border: 2px double #B42318; border-radius: 3px; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { min-height: 100vh; font-family: 'Manrope', sans-serif; }
-        h1, h2, h3, .font-headline { font-family: 'Newsreader', serif; }
+        html, body { min-height: 100%; min-height: 100dvh; }
+        body {
+          font-family: 'Figtree', sans-serif;
+          color: var(--cf-ink);
+          background:
+            radial-gradient(120% 80% at 100% -10%, rgba(31, 107, 74, 0.12), transparent 55%),
+            radial-gradient(90% 60% at -10% 30%, rgba(196, 163, 90, 0.10), transparent 50%),
+            linear-gradient(180deg, #EAF1EC 0%, var(--cf-paper) 40%, #E7EEE9 100%);
+          background-attachment: fixed;
+          -webkit-tap-highlight-color: transparent;
+          overscroll-behavior-y: none;
+        }
+        h1, h2, h3, .font-headline { font-family: 'Fraunces', Georgia, serif; }
         .score-input::-webkit-inner-spin-button { -webkit-appearance: none; }
         .score-input { -moz-appearance: textfield; }
         @keyframes scoreModalIn {
-          from { opacity: 0; transform: translate3d(0, 0.5rem, 0) scale(0.99); }
-          to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+          from { opacity: 0; transform: translate3d(0, 1rem, 0); }
+          to { opacity: 1; transform: translate3d(0, 0, 0); }
         }
-        .score-modal-enter { animation: scoreModalIn 0.28s ease-out both; }
+        @keyframes riseIn {
+          from { opacity: 0; transform: translate3d(0, 0.6rem, 0); }
+          to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        @keyframes softPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(232, 201, 122, 0.35); }
+          50% { box-shadow: 0 0 0 6px rgba(232, 201, 122, 0); }
+        }
+        .score-modal-enter { animation: scoreModalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .rise-in { animation: riseIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .rise-in-delay { animation: riseIn 0.45s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .pulse-ready { animation: softPulse 1.8s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .score-modal-enter { animation: none; }
+          .score-modal-enter, .rise-in, .rise-in-delay, .pulse-ready { animation: none; }
         }
         .login-material-symbols { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
         .editorial-overlay {
@@ -110,6 +148,34 @@
           box-shadow: 0 20px 40px rgba(0,0,0,0.2), inset 0 0 15px rgba(197, 160, 89, 0.15);
           border: 1px solid #c5a059;
         }
+        .app-header {
+          padding-top: var(--safe-top);
+          height: var(--header-h);
+          background: var(--cf-green);
+        }
+        .app-nav {
+          padding-bottom: max(0.5rem, var(--safe-bottom));
+          background: rgba(243, 247, 244, 0.92);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-top: 1px solid rgba(11, 46, 34, 0.08);
+        }
+        .page-pad {
+          padding-top: calc(var(--header-h) + 0.75rem);
+          padding-bottom: calc(var(--nav-h) + 1rem);
+        }
+        .phone-page { max-width: 32rem; margin-left: auto; margin-right: auto; }
+        .tap-target { min-height: 2.75rem; min-width: 2.75rem; }
+        .hole-chip {
+          transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+        }
+        .hole-chip:active { transform: scale(0.96); }
+        .score-sheet {
+          background: rgba(255,255,255,0.88);
+          border: 1px solid rgba(11, 46, 34, 0.08);
+        }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
     </style>
 </head>
 <body class="bg-surface text-on-surface">
@@ -514,10 +580,10 @@ function AppShell() {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="text-center">
-          <h1 className="font-headline italic text-3xl text-primary mb-2">Championship Flight</h1>
-          <p className="text-on-surface-variant text-sm">Loading...</p>
+      <div className="min-h-[100dvh] flex items-center justify-center px-6">
+        <div className="text-center rise-in">
+          <p className="font-headline italic text-3xl text-primary tracking-tight">Championship Flight</p>
+          <p className="text-on-surface-variant text-sm mt-2 font-body">Loading…</p>
         </div>
       </div>
     );
@@ -548,22 +614,35 @@ function AppShell() {
 // ============================================================
 // COMMON COMPONENTS
 // ============================================================
-const TopHeader = ({ title = "Championship Flight" }) => {
+const TopHeader = ({ title = "Championship Flight", backTo }) => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   return (
-    <header className="bg-[#012d1d] fixed top-0 w-full z-50 flex items-center justify-between px-6 py-4">
-      <div className="flex items-center gap-4">
-        <Link to="/"><span className="material-symbols-outlined text-[#ffe088]">menu</span></Link>
+    <header className="app-header fixed top-0 inset-x-0 z-50 flex items-center justify-between px-3 gap-2">
+      <div className="w-16 flex items-center">
+        {backTo ? (
+          <button
+            type="button"
+            onClick={() => navigate(backTo)}
+            className="tap-target flex items-center justify-center text-secondary-fixed bg-transparent border-0 p-0"
+            aria-label="Back"
+          >
+            <span className="material-symbols-outlined">arrow_back</span>
+          </button>
+        ) : (
+          <Link to="/" className="tap-target flex items-center justify-center text-secondary-fixed" aria-label="Home">
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>golf_course</span>
+          </Link>
+        )}
       </div>
-      <h1 className="font-headline italic text-xl text-[#f8f9fa]">{title}</h1>
-      <div className="flex items-center gap-3">
+      <h1 className="font-headline italic text-[1.05rem] text-white tracking-tight truncate text-center flex-1">{title}</h1>
+      <div className="w-16 flex items-center justify-end gap-1">
         <button
           type="button"
           onClick={() => { signOut(); navigate('/login'); }}
-          className="text-[11px] uppercase tracking-widest text-[#f8f9fa]/80 hover:text-[#ffe088] transition-colors font-body font-semibold bg-transparent border-0 cursor-pointer"
+          className="text-[10px] uppercase tracking-wider text-white/70 hover:text-secondary-fixed transition-colors font-body font-semibold bg-transparent border-0 cursor-pointer px-1"
         >
-          Sign out
+          Out
         </button>
         <UserAvatar />
       </div>
@@ -574,9 +653,9 @@ const TopHeader = ({ title = "Championship Flight" }) => {
 const UserAvatar = () => {
   const { user } = useAuth();
   return (
-    <div className="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden">
+    <div className="w-7 h-7 rounded-full bg-primary-container overflow-hidden ring-1 ring-white/20">
       {user?.avatar_url ? <img className="w-full h-full object-cover" src={user.avatar_url} alt="" /> :
-        <div className="w-full h-full flex items-center justify-center text-xs font-bold">{user?.display_name?.[0]}</div>}
+        <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-secondary-fixed">{user?.display_name?.[0]}</div>}
     </div>
   );
 };
@@ -603,30 +682,30 @@ function FriendInvitePanel({ user, wide }) {
   };
   if (!code) return null;
   return (
-    <div className={`shrink-0 rounded-xl border-2 border-secondary-fixed/50 bg-gradient-to-br from-secondary-fixed/15 to-surface-container-lowest p-4 shadow-md ${wide ? 'w-full max-w-xl' : 'w-full md:w-auto md:max-w-sm'}`}>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-1">Invite a friend</p>
+    <div className={`shrink-0 rounded-xl border border-sand/40 bg-white/70 p-3.5 ${wide ? 'w-full' : 'w-full'}`}>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-1">Invite</p>
       <p className="text-xs text-on-surface-variant mb-3 leading-snug">
-        Share your link so they can add you. They&apos;ll need a Sandbags account.
+        Share so partners can add you.
       </p>
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex gap-2">
         <button
           type="button"
           onClick={() => copy('link', link)}
-          className="flex-1 flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:brightness-110"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-on-primary py-3 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider active:scale-[0.98] transition-transform"
         >
           <span className="material-symbols-outlined text-sm">link</span>
-          {copied === 'link' ? 'Copied!' : 'Copy link'}
+          {copied === 'link' ? 'Copied' : 'Link'}
         </button>
         <button
           type="button"
           onClick={() => copy('code', code)}
-          className="flex-1 flex items-center justify-center gap-2 border-2 border-primary/25 bg-white py-2.5 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low"
+          className="flex-1 flex items-center justify-center gap-1.5 border border-primary/20 bg-white py-3 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider text-primary active:scale-[0.98] transition-transform"
         >
           <span className="material-symbols-outlined text-sm">tag</span>
-          {copied === 'code' ? 'Copied!' : 'Copy code'}
+          {copied === 'code' ? 'Copied' : 'Code'}
         </button>
       </div>
-      <p className="mt-2 text-[10px] text-on-surface-variant font-mono break-all opacity-90">{code}</p>
+      <p className="mt-2 text-[10px] text-on-surface-variant font-mono break-all">{code}</p>
     </div>
   );
 }
@@ -698,26 +777,26 @@ const BottomNav = () => {
     return pathNorm === target;
   };
   const items = [
-    { path: '/', icon: 'grid_view', label: 'Dashboard' },
-    { path: '/scorecard', icon: 'edit_note', label: 'Scorecard' },
-    { path: '/leaderboard', icon: 'leaderboard', label: 'Leaderboard' },
-    { path: '/wallet', icon: 'payments', label: 'Wallet' },
+    { path: '/', icon: 'home', label: 'Home' },
+    { path: '/scorecard', icon: 'scoreboard', label: 'Play' },
+    { path: '/leaderboard', icon: 'emoji_events', label: 'Board' },
+    { path: '/wallet', icon: 'account_balance_wallet', label: 'Cash' },
   ];
   return (
-    <nav className="bg-[#f8f9fa]/80 backdrop-blur-md fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 z-50 rounded-t-xl shadow-[0_-10px_30px_rgba(25,28,29,0.04)]">
+    <nav className="app-nav fixed bottom-0 inset-x-0 z-50 flex justify-around items-stretch pt-1.5 px-1">
       {items.map((it) => {
         const on = isActive(it.path);
         return (
           <Link
             key={it.path}
             to={it.path}
-            className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
-              on ? 'text-[#00140d]' : 'text-[#191c1d]/38'
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[3.25rem] transition-colors ${
+              on ? 'text-primary' : 'text-on-surface/40'
             }`}
             aria-current={on ? 'page' : undefined}
           >
             <span
-              className={`material-symbols-outlined text-[26px] leading-none ${on ? 'opacity-100' : 'opacity-55'}`}
+              className={`material-symbols-outlined text-[24px] leading-none ${on ? 'opacity-100' : 'opacity-70'}`}
               style={
                 on
                   ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" }
@@ -726,7 +805,7 @@ const BottomNav = () => {
             >
               {it.icon}
             </span>
-            <span className={`font-sans text-[10px] tracking-tight uppercase ${on ? 'font-extrabold' : 'font-semibold'}`}>
+            <span className={`font-label text-[10px] tracking-wide ${on ? 'font-bold' : 'font-semibold'}`}>
               {it.label}
             </span>
           </Link>
@@ -1185,154 +1264,141 @@ const ClubhouseDashboard = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen pb-24">
-      <TopHeader title="The Clubhouse" />
-      <main className="max-w-5xl mx-auto px-6 mt-24 space-y-12">
-        {/* Hero */}
-        <section className="relative rounded-xl overflow-hidden min-h-[420px] flex flex-col justify-end p-8 md:p-12 text-white">
-          <div className="absolute inset-0 z-0">
-            <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxm-8D4QT0GcYUOq9QzLAGr7SscSBm5ETiQIHwcN0kZh40gMkIC0hWbi47h35t8JtXEpnyxb6AUMsgCsyhnsNe0r9v7cKzjDl4bqTXpC5HrkD5gWTOgZtZzncQ-4JHa39aWI1402O121BbibOWXGD0v9_jgvAfm9b_zGLfZE0r4LhnJdpe7-WVHHoFaYJ-u8azyVq272j5b3VqjqpsL-tsIjrvpNv8jCCAITeL60JqMRejFq9GDtVwY_fQs24yHFkRi4_5Dqdo9W4"/>
-            <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent"></div>
-          </div>
-          <div className="relative z-10 max-w-2xl space-y-6">
-            <div className="space-y-2">
-              <span className="text-secondary-fixed font-label tracking-widest uppercase text-xs font-bold">
-                {activeMatch ? 'Active Match' : "Today's Tee Time"}
-              </span>
-              <h2 className="text-5xl md:text-6xl font-headline italic leading-tight">
-                {activeMatch ? activeMatch.name || activeMatch.course_name : 'Ready for the First Tee?'}
-              </h2>
-              {activeMatch ? (
-                <p className="text-emerald-100 font-body text-lg max-w-md">
-                  {activeMatch.course_name} · Hole {activeMatch.current_hole}
-                </p>
-              ) : (
-                <p className="text-emerald-100 font-body text-lg max-w-md">
-                  The fairways are quiet and the greens are waiting. Start a new match.
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              {activeMatch ? (
-                <>
-                  <button onClick={() => navigate('/scorecard')} className="bg-secondary-fixed text-on-secondary-fixed px-8 py-4 rounded-md font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-xl">
-                    <span className="material-symbols-outlined">edit_note</span>
-                    CONTINUE MATCH
-                  </button>
-                  <button onClick={() => navigate('/new-match')} className="bg-surface/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-md font-bold flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all">
-                    <span className="material-symbols-outlined">add_circle</span>
-                    START NEW MATCH
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => navigate('/new-match')} className="bg-secondary-fixed text-on-secondary-fixed px-8 py-4 rounded-md font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-xl">
-                  <span className="material-symbols-outlined">add_circle</span>
-                  START NEW MATCH
-                </button>
-              )}
-              <button onClick={() => navigate('/scorecard')} className="bg-surface/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-md font-bold flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all">
-                <span className="material-symbols-outlined">edit_note</span>
-                VIEW SCORECARD
-              </button>
-            </div>
-          </div>
-        </section>
+  const toParLabel = stats
+    ? (stats.toPar > 0 ? `+${stats.toPar}` : stats.toPar === 0 ? 'E' : String(stats.toPar))
+    : null;
 
-        {/* Stats */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-surface-container-lowest p-8 rounded-xl shadow-sm space-y-6">
-            <div className="flex justify-between items-end">
-              <div>
-                <h3 className="text-2xl font-headline italic text-primary">Current Round</h3>
-                <p className="text-on-surface-variant text-sm font-body">
-                  {stats?.courseName || 'No active round'} {stats ? `· ${stats.holesPlayed} holes` : ''}
-                </p>
-              </div>
-              {stats && (
-                <div className="text-right">
-                  <span className="text-4xl font-headline text-secondary">{stats.total}</span>
-                  <p className="text-[10px] font-bold tracking-tighter uppercase text-outline">
-                    {stats.toPar > 0 ? `+${stats.toPar}` : stats.toPar === 0 ? 'E' : stats.toPar}
-                  </p>
-                </div>
-              )}
-            </div>
-            {stats && (
-              <div className="grid grid-cols-3 gap-4 border-t border-outline-variant/10 pt-6">
-                <div className="space-y-1"><p className="text-[10px] uppercase tracking-widest font-bold text-outline">Fairways</p><p className="text-xl font-headline">{stats.fairwayPct}%</p></div>
-                <div className="space-y-1"><p className="text-[10px] uppercase tracking-widest font-bold text-outline">G.I.R.</p><p className="text-xl font-headline">{stats.gir}</p></div>
-                <div className="space-y-1"><p className="text-[10px] uppercase tracking-widest font-bold text-outline">Putts</p><p className="text-xl font-headline">{stats.putts}</p></div>
-              </div>
-            )}
+  return (
+    <div className="min-h-[100dvh]">
+      <TopHeader title="Championship Flight" />
+      <main className="page-pad phone-page px-4 space-y-5">
+        <section className="relative overflow-hidden min-h-[min(72dvh,34rem)] -mx-4 -mt-3 flex flex-col justify-end text-white rise-in">
+          <div className="absolute inset-0 z-0">
+            <img
+              className="w-full h-full object-cover"
+              alt=""
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxm-8D4QT0GcYUOq9QzLAGr7SscSBm5ETiQIHwcN0kZh40gMkIC0hWbi47h35t8JtXEpnyxb6AUMsgCsyhnsNe0r9v7cKzjDl4bqTXpC5HrkD5gWTOgZtZzncQ-4JHa39aWI1402O121BbibOWXGD0v9_jgvAfm9b_zGLfZE0r4LhnJdpe7-WVHHoFaYJ-u8azyVq272j5b3VqjqpsL-tsIjrvpNv8jCCAITeL60JqMRejFq9GDtVwY_fQs24yHFkRi4_5Dqdo9W4"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/50 to-primary/20" />
           </div>
-          <div className="bg-primary text-white p-8 rounded-xl flex flex-col justify-between relative overflow-hidden">
-            <span className="material-symbols-outlined absolute -right-4 -top-4 text-white/5 text-9xl select-none">military_tech</span>
-            <div className="relative z-10">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-xl font-headline italic text-secondary-fixed">Current Index</h3>
+          <div className="relative z-10 px-5 pb-6 pt-16 space-y-4">
+            <p className="font-headline italic text-[2.6rem] leading-[0.95] tracking-tight">
+              Championship Flight
+            </p>
+            <p className="text-white/85 text-[15px] leading-snug max-w-[18rem]">
+              {activeMatch
+                ? `${activeMatch.course_name} · Hole ${activeMatch.current_hole}`
+                : 'Start a round. Keep score. Settle bets automatically.'}
+            </p>
+            <div className="flex flex-col gap-2.5 pt-1">
+              {activeMatch ? (
                 <button
                   type="button"
-                  onClick={openHandicapEdit}
-                  className="shrink-0 rounded-full p-2 text-secondary-fixed hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-fixed transition-colors"
-                  title="Edit handicap index"
-                  aria-label="Edit handicap index"
+                  onClick={() => navigate('/scorecard')}
+                  className="w-full bg-secondary-fixed text-on-secondary-fixed py-4 rounded-lg font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
                 >
-                  <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 0, 'wght' 600" }}>edit</span>
+                  Continue round
+                  <span className="material-symbols-outlined text-lg">play_arrow</span>
                 </button>
-              </div>
-              <button
-                type="button"
-                onClick={openHandicapEdit}
-                className="text-left w-full mt-2 rounded-lg -mx-1 px-1 py-0.5 hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-fixed transition-colors"
-                title="Edit handicap index"
-              >
-                <span className="text-5xl font-headline tabular-nums">{user?.handicap_index ?? '—'}</span>
-              </button>
-              <p className="text-on-primary-container text-xs mt-1 uppercase tracking-widest font-bold">Trending ↓ 0.2</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/new-match')}
+                  className="w-full bg-secondary-fixed text-on-secondary-fixed py-4 rounded-lg font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                >
+                  Start new match
+                  <span className="material-symbols-outlined text-lg">add</span>
+                </button>
+              )}
+              {activeMatch && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/new-match')}
+                  className="w-full border border-white/25 text-white py-3 rounded-lg font-semibold text-sm active:scale-[0.98] transition-transform bg-white/5"
+                >
+                  New match instead
+                </button>
+              )}
             </div>
           </div>
         </section>
 
-        <section className="space-y-8 pt-8 border-t border-outline-variant/20">
-          <div>
-            <h3 className="text-2xl font-headline italic text-primary mb-1">Friends</h3>
-            <p className="text-sm text-on-surface-variant">Invite playing partners and see who you&apos;re connected with.</p>
-          </div>
-          <FriendInvitePanel user={user} wide />
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-3">Your friends</p>
-            {friends.length === 0 ? (
-              <p className="text-sm text-on-surface-variant py-4 px-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
-                No friends yet. Share your invite link above so others can add you.
+        <section className="rise-in-delay flex items-center justify-between gap-3 py-1">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Your score</p>
+            {stats ? (
+              <p className="font-headline text-2xl text-primary tabular-nums leading-tight">
+                {stats.total}{' '}
+                <span className="text-base text-secondary">{toParLabel}</span>
+                <span className="block text-xs font-body font-medium text-on-surface-variant mt-0.5 truncate">
+                  {stats.courseName} · {stats.holesPlayed} holes
+                </span>
               </p>
             ) : (
-              <ul className="space-y-2">
-                {friends.map((f) => (
-                  <li
-                    key={f.id}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/10 shadow-sm"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center text-sm font-bold text-primary shrink-0 border border-outline-variant/15">
-                      {f.avatar_url ? <img src={f.avatar_url} alt="" className="w-full h-full object-cover" /> : (f.display_name?.[0] || '?')}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-body font-bold text-primary truncate">{f.display_name}</p>
-                      {f.handicap_index != null && (
-                        <p className="text-[11px] text-on-surface-variant">Handicap index {f.handicap_index}</p>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-sm text-on-surface-variant mt-0.5">No round yet</p>
             )}
           </div>
+          <button
+            type="button"
+            onClick={openHandicapEdit}
+            className="shrink-0 text-right px-3 py-2 rounded-lg bg-primary text-white active:scale-[0.98] transition-transform"
+            aria-label="Edit handicap index"
+          >
+            <p className="text-[9px] uppercase tracking-wider text-secondary-fixed font-bold">Index</p>
+            <p className="font-headline text-2xl tabular-nums leading-none">{user?.handicap_index ?? '—'}</p>
+          </button>
+        </section>
+
+        {stats && (
+          <section className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-bold text-outline">FW</p>
+              <p className="font-headline text-xl text-primary">{stats.fairwayPct}%</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-bold text-outline">GIR</p>
+              <p className="font-headline text-xl text-primary">{stats.gir}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-bold text-outline">Putts</p>
+              <p className="font-headline text-xl text-primary">{stats.putts}</p>
+            </div>
+          </section>
+        )}
+
+        <section className="space-y-3 pt-2 border-t border-primary/10">
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className="font-headline italic text-xl text-primary">Friends</h3>
+            <span className="text-[11px] text-on-surface-variant">{friends.length}</span>
+          </div>
+          <FriendInvitePanel user={user} wide />
+          {friends.length === 0 ? (
+            <p className="text-sm text-on-surface-variant py-2">
+              Share your invite so partners can join your matches.
+            </p>
+          ) : (
+            <ul className="divide-y divide-primary/8">
+              {friends.map((f) => (
+                <li key={f.id} className="flex items-center gap-3 py-3">
+                  <div className="w-9 h-9 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                    {f.avatar_url ? <img src={f.avatar_url} alt="" className="w-full h-full object-cover" /> : (f.display_name?.[0] || '?')}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-body font-semibold text-primary truncate text-[15px]">{f.display_name}</p>
+                    {f.handicap_index != null && (
+                      <p className="text-[11px] text-on-surface-variant">HCP {f.handicap_index}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </main>
 
       {hcpModalOpen && (
         <div
-          className="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[260] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50"
           role="dialog"
           aria-modal="true"
           aria-labelledby="hcp-edit-title"
@@ -1341,18 +1407,15 @@ const ClubhouseDashboard = () => {
           }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl bg-surface-container-lowest border border-outline-variant/20 shadow-xl p-6"
+            className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-xl bg-white border border-outline-variant/20 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] score-modal-enter"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id="hcp-edit-title" className="font-headline text-xl italic text-primary mb-1">
               Handicap index
             </h2>
             <p className="text-xs text-on-surface-variant font-body mb-4">
-              Your GHIN-style index (−10 to 54). Used for net scoring and new matches.
+              Used for net scoring (−10 to 54).
             </p>
-            <label className="sr-only" htmlFor="hcp-index-input">
-              Handicap index value
-            </label>
             <input
               id="hcp-index-input"
               type="number"
@@ -1360,19 +1423,19 @@ const ClubhouseDashboard = () => {
               min="-10"
               max="54"
               inputMode="decimal"
-              className="w-full rounded-xl border border-outline-variant/30 bg-surface px-4 py-3 text-lg font-headline text-primary tabular-nums focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+              className="w-full rounded-lg border border-outline-variant/30 bg-surface px-4 py-3.5 text-lg font-headline text-primary tabular-nums focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
               value={hcpDraft}
               onChange={(e) => setHcpDraft(e.target.value)}
               disabled={hcpBusy}
               autoFocus
             />
             {hcpErr && <p className="text-error text-sm mt-2 font-body">{hcpErr}</p>}
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2.5 mt-5">
               <button
                 type="button"
                 disabled={hcpBusy}
                 onClick={() => !hcpBusy && setHcpModalOpen(false)}
-                className="flex-1 py-3 rounded-xl border border-outline-variant/30 font-label text-sm font-bold text-on-surface-variant hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                className="flex-1 py-3.5 rounded-lg border border-outline-variant/30 font-label text-sm font-bold text-on-surface-variant disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -1380,7 +1443,7 @@ const ClubhouseDashboard = () => {
                 type="button"
                 disabled={hcpBusy}
                 onClick={() => void saveHandicapIndex()}
-                className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-label text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="flex-1 py-3.5 rounded-lg bg-primary text-on-primary font-label text-sm font-bold disabled:opacity-50"
               >
                 {hcpBusy ? 'Saving…' : 'Save'}
               </button>
@@ -1790,57 +1853,181 @@ const ScorecardScreen = () => {
     }, 3500);
   };
 
+  const shortCourse =
+    matchData.course_name?.split(' ').slice(0, 2).join(' ') || 'Live';
+
   return (
-    <div className="min-h-screen">
-      <TopHeader title={`${matchData.course_name?.split(' ').slice(0,2).join(' ') || 'Match'} - Live`} />
-      <main className="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto">
-        {/* Header — controls stay below fixed TopHeader (no z-index above header) */}
-        <section className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <span className="font-label text-secondary text-xs font-bold tracking-widest uppercase mb-2 block">Live Match</span>
-              <h2 className="font-headline text-4xl md:text-5xl text-primary font-bold -tracking-tight leading-none mb-3">{matchData.course_name}</h2>
-              <div className="flex items-center gap-4 text-on-surface-variant font-medium text-sm">
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">location_on</span> {matchData.course_location}</span>
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">flag</span>
-                  Hole {matchData.current_hole} — Par {holes.find(h => h.hole_number === matchData.current_hole)?.par || '?'}
-                </span>
-                {matchData.tee_name && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">sports_golf</span> {matchData.tee_name}</span>}
+    <div className="min-h-[100dvh]">
+      <TopHeader title={shortCourse} />
+      <main className="page-pad phone-page px-3 space-y-3">
+        <section className="rise-in flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h2 className="font-headline italic text-[1.65rem] text-primary leading-tight truncate">
+              {matchData.course_name}
+            </h2>
+            <p className="text-[12px] text-on-surface-variant mt-0.5 truncate">
+              Hole {currentHoleNum} · Par {currentHolePar} · {currentHoleYdsLabel}
+              {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            {matchIsNet && !matchIsStampede && (
+              <div className="bg-surface-container-low p-0.5 rounded-lg flex">
+                <button type="button" onClick={() => setScoringMode('gross')} className={`px-2.5 py-1.5 rounded-md font-label text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Gross</button>
+                <button type="button" onClick={() => setScoringMode('net')} className={`px-2.5 py-1.5 rounded-md font-label text-[11px] font-bold ${scoringMode === 'net' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Net</button>
               </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center shrink-0">
-              {matchIsNet && !matchIsStampede && (
-                <div className="bg-surface-container-low p-1 rounded-xl flex items-center self-start md:self-auto">
-                  <button type="button" onClick={() => setScoringMode('gross')} className={`px-6 py-2 rounded-lg font-label text-sm font-bold ${scoringMode === 'gross' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-primary'}`}>Gross</button>
-                  <button type="button" onClick={() => setScoringMode('net')} className={`px-6 py-2 rounded-lg font-label text-sm font-bold ${scoringMode === 'net' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-primary'}`}>Net</button>
-                </div>
-              )}
-              <button
-                type="button"
-                disabled={finishing}
-                onClick={onFinishRoundButtonClick}
-                title={
-                  finishRoundAwaitingConfirm
-                    ? 'Tap again to complete the round'
-                    : 'Tap once, then confirm within a few seconds'
-                }
-                className={`bg-secondary-fixed text-on-secondary-fixed px-6 py-3 rounded-xl font-label text-sm font-bold uppercase tracking-wide shadow-md hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60 ${finishRoundAwaitingConfirm ? 'ring-2 ring-offset-2 ring-offset-background ring-on-secondary-fixed' : ''}`}
-              >
-                {finishing ? 'Finishing…' : finishRoundAwaitingConfirm ? 'Confirm finish?' : 'Finish Round'}
-              </button>
-            </div>
+            )}
+            <button
+              type="button"
+              disabled={finishing}
+              onClick={onFinishRoundButtonClick}
+              className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md border border-primary/15 ${finishRoundAwaitingConfirm ? 'bg-secondary-fixed text-on-secondary-fixed' : 'text-primary bg-white/70'} disabled:opacity-60`}
+            >
+              {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
+            </button>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Scorecard Table */}
-          <div className="lg:col-span-9 bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(25,28,29,0.06)] flex flex-col">
-            <div className="overflow-x-auto hide-scrollbar min-w-0">
+        <section className="rise-in-delay score-sheet rounded-xl px-3.5 py-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant">You</p>
+            <p className={`font-headline text-2xl tabular-nums leading-none ${(bets.length > 0 || matchJunkOn) ? (totalYou >= 0 ? 'text-fairway' : 'text-error') : 'text-primary'}`}>
+              {(bets.length > 0 || matchJunkOn)
+                ? `${totalYou >= 0 ? '+' : ''}${totalYou.toFixed(2)}`
+                : '—'}
+            </p>
+          </div>
+          <div className="text-right space-y-0.5">
+            {skinsBet && (
+              <p className="text-[12px] font-semibold text-primary">
+                Skins carry <span className="tabular-nums">${Number(skinsBet.carry_over || 0).toFixed(2)}</span>
+              </p>
+            )}
+            {matchIsTeams && teamsMoneyBet && teamHolesWon && (
+              <p className="text-[12px] font-semibold text-primary">
+                T1 {teamHolesWon.w1} — T2 {teamHolesWon.w2}
+              </p>
+            )}
+            {!skinsBet && !(matchIsTeams && teamsMoneyBet && teamHolesWon) && (
+              <p className="text-[12px] text-on-surface-variant">
+                {bets.length ? `${bets.length} active bet${bets.length === 1 ? '' : 's'}` : 'No money game'}
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="score-sheet rounded-xl overflow-hidden">
+          <div className="bg-primary text-white px-3.5 py-3 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.16em] font-bold text-secondary-fixed">Now playing</p>
+              <p className="font-headline italic text-xl leading-none mt-0.5">
+                Hole {currentHoleNum}
+                <span className="text-base not-italic font-body font-semibold text-white/80 ml-2">
+                  Par {currentHolePar}
+                </span>
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={!user?.id}
+              onClick={() => {
+                if (!user?.id) return;
+                const ch = matchData.current_hole;
+                const row = scoreboardPlayers.find((p) => p.user_id === user.id);
+                const sc = row?.holes?.find((s) => s.hole_number === ch);
+                const hp = holes.find((h) => h.hole_number === ch);
+                openScoreModal(ch, user.id, user.display_name || 'You', hp?.par ?? 4, sc?.strokes, sc?.junk);
+              }}
+              className={`shrink-0 bg-secondary-fixed text-on-secondary-fixed px-3.5 py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wide active:scale-[0.98] transition-transform disabled:opacity-40 ${!allInHaveScoreCurrentHole ? 'pulse-ready' : ''}`}
+            >
+              {matchJunkOn ? 'Your score' : 'Enter score'}
+            </button>
+          </div>
+          <ul className="divide-y divide-primary/8">
+            {scoreboardPlayers.map((player) => {
+              const isMe = player.user_id === user?.id;
+              const sc = player.holes?.find((s) => Number(s.hole_number) === Number(currentHoleNum));
+              const strokes = sc?.strokes;
+              const netByHole = player.net_strokes_by_hole || player.netStrokesByHole || {};
+              const recv = netByHole[currentHoleNum] || netByHole[String(currentHoleNum)] || 0;
+              const displayStrokes =
+                netScoreView && strokes != null && Number(strokes) >= 1
+                  ? Math.max(1, Number(strokes) - Number(recv || 0))
+                  : strokes;
+              const teamN = Number(player.team_index ?? player.teamIndex);
+              return (
+                <li key={player.user_id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openScoreModal(
+                        currentHoleNum,
+                        player.user_id,
+                        player.display_name,
+                        currentHolePar === '?' ? 4 : currentHolePar,
+                        strokes || null,
+                        sc?.junk
+                      )
+                    }
+                    className={`w-full flex items-center gap-3 px-3.5 py-3 text-left hole-chip ${isMe ? 'bg-primary/[0.04]' : 'bg-white/50'}`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-[15px] font-semibold truncate ${isMe ? 'text-primary' : 'text-on-surface'}`}>
+                        {player.display_name}
+                        {isMe ? ' · you' : ''}
+                      </p>
+                      <p className="text-[11px] text-on-surface-variant truncate">
+                        {matchIsTeams && [1, 2].includes(teamN) ? `Team ${teamN}` : ''}
+                        {matchIsTeams && [1, 2].includes(teamN) && showInOutBadges ? ' · ' : ''}
+                        {showInOutBadges ? (playerInOnBetRow(player) ? 'In' : 'Out') : ''}
+                        {netScoreView && recv > 0 ? `${(matchIsTeams && [1, 2].includes(teamN)) || showInOutBadges ? ' · ' : ''}+${recv} hcp` : ''}
+                        {matchIsStampede ? ` · Quota ${player.stampede_quota ?? player.stampedeQuota ?? '—'}` : ''}
+                      </p>
+                    </div>
+                    <div
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 font-headline text-xl tabular-nums ${
+                        strokes
+                          ? 'bg-primary text-white'
+                          : 'border border-dashed border-primary/25 text-on-surface-variant/50'
+                      }`}
+                    >
+                      {displayStrokes || '—'}
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="px-3.5 py-3 border-t border-primary/10 flex gap-2">
+            <button
+              type="button"
+              disabled={!canGoNextHole}
+              onClick={advanceHole}
+              className="flex-1 py-3.5 rounded-lg bg-primary text-on-primary font-label text-[12px] font-bold uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-transform"
+            >
+              {atFinalHole ? 'Final hole' : !allInHaveScoreCurrentHole ? 'Need scores' : 'Next hole'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/new-challenge')}
+              className="px-3.5 py-3.5 rounded-lg border border-primary/15 bg-white/80 text-primary font-label text-[12px] font-bold uppercase tracking-wide active:scale-[0.98] transition-transform"
+            >
+              Side bet
+            </button>
+          </div>
+        </section>
+
+        <details className="score-sheet rounded-xl overflow-hidden group">
+          <summary className="list-none cursor-pointer px-3.5 py-3 flex items-center justify-between font-label text-[12px] font-bold uppercase tracking-wider text-primary select-none">
+            <span>Full scorecard</span>
+            <span className="material-symbols-outlined text-lg text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+          </summary>
+          <div className="border-t border-primary/10">
+          <div className="overflow-x-auto hide-scrollbar min-w-0">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-primary text-[#f8f9fa] font-label text-[10px] uppercase tracking-[0.15em]">
-                    <th className="py-4 px-4 font-bold sticky left-0 bg-primary z-20 min-w-[120px] shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Hole</th>
+                    <th className="py-3 px-3 font-bold sticky left-0 bg-primary z-20 min-w-[96px] shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Hole</th>
                     {holes.map(h => (
                       <th key={h.hole_number} className={`py-4 px-2 font-bold text-center min-w-[40px] ${h.hole_number === matchData.current_hole ? 'bg-secondary text-on-secondary-fixed' : ''}`}>
                         {h.hole_number}
@@ -2133,251 +2320,122 @@ const ScorecardScreen = () => {
                 </tbody>
               </table>
             </div>
-            <div
-              role="region"
-              aria-label="Current hole and next hole"
-              className="shrink-0 border-t border-black/10 bg-primary px-4 py-3 text-on-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:px-5"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 font-label text-sm font-bold tracking-tight md:text-base">
-                  <span>Hole {currentHoleNum}</span>
-                  <span className="text-on-primary/45 select-none" aria-hidden>
-                    ·
-                  </span>
-                  <span>Par {currentHolePar}</span>
-                  <span className="text-on-primary/45 select-none" aria-hidden>
-                    ·
-                  </span>
-                  <span className="tabular-nums">{currentHoleYdsLabel}</span>
-                </div>
-                <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-3 gap-y-2 sm:flex-nowrap">
-                  {skinsBet && (
-                    <span className="text-center text-[11px] font-bold leading-tight text-secondary-fixed sm:text-left md:text-xs">
-                      Skins carry <span className="tabular-nums">${Number(skinsBet.carry_over || 0).toFixed(2)}</span>
-                    </span>
-                  )}
-                  {matchIsTeams && teamsMoneyBet && teamHolesWon && (
-                    <span className="text-center text-[11px] font-bold leading-tight text-on-primary-container sm:text-left md:text-xs">
-                      Team match · T1 {teamHolesWon.w1} — T2 {teamHolesWon.w2}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    disabled={!canGoNextHole}
-                    onClick={advanceHole}
-                    title={
-                      atFinalHole
-                        ? 'Already on hole 18'
-                        : !allInHaveScoreCurrentHole
-                          ? matchIsTeams && teamsMoneyBet
-                            ? 'Every In player needs a score, and each In side (Team 1 & Team 2) needs at least one posted score on this hole before advancing.'
-                            : 'Every player who is In on the bet needs a score for this hole before you can advance.'
-                          : 'Go to the next hole'
-                    }
-                    className="shrink-0 rounded-lg bg-secondary-fixed px-4 py-2 font-label text-[10px] font-bold uppercase tracking-wider text-on-secondary-fixed shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 md:px-5 md:text-xs"
-                  >
-                    {atFinalHole ? 'Final hole' : !allInHaveScoreCurrentHole ? 'Scores needed' : 'Next hole →'}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
+        </details>
 
-          {/* Sidebar — match wagers first, then junk ledger */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-primary p-6 rounded-2xl text-on-primary">
-              <h3 className="font-label text-xs font-bold uppercase tracking-widest text-primary-fixed mb-2">Active bets</h3>
-              {matchIsTeams && teamsMoneyBet && teamHolesWon && (
-                <p className="text-[11px] font-bold text-secondary-fixed mb-3 leading-snug">
-                  Team match play · holes won · T1 {teamHolesWon.w1} — T2 {teamHolesWon.w2}
+        <section className="score-sheet rounded-xl overflow-hidden">
+          <div className="px-3.5 py-3 bg-primary text-white">
+            <h3 className="font-label text-[11px] font-bold uppercase tracking-widest text-secondary-fixed">Money</h3>
+            {matchIsTeams && teamsMoneyBet && teamHolesWon && (
+              <p className="text-[12px] font-semibold text-secondary-fixed mt-1">
+                Team match · T1 {teamHolesWon.w1} — T2 {teamHolesWon.w2}
+              </p>
+            )}
+          </div>
+          <div className="p-3.5 space-y-3">
+            {bets.length > 0 ? (
+              betsOrdered.map((b) => {
+                const n = b.participants?.length || 0;
+                const a = Number(b.amount || 0);
+                const myP = b.participants?.find((x) => x.user_id === user?.id);
+                const myR = Number(myP?.net_result) || 0;
+                const stakeLabel =
+                  b.bet_type === 'nassau'
+                    ? `$${a} ×3`
+                    : b.bet_type === 'stroke_play' || b.bet_type === 'stampede'
+                      ? `$${a}/rd`
+                      : `$${a}/hole`;
+                return (
+                  <div key={b.id} className="flex items-start justify-between gap-3 border-b border-primary/8 pb-3 last:border-0 last:pb-0">
+                    <div className="min-w-0">
+                      <p className="text-[14px] font-semibold text-primary truncate">{b.name || sideBetDisplayName(b.bet_type)}</p>
+                      <p className="text-[11px] text-on-surface-variant leading-snug mt-0.5">{betRulesHint(b)}</p>
+                      <p className="text-[11px] text-on-surface-variant mt-1">{stakeLabel} · {n} in</p>
+                    </div>
+                    <p className={`shrink-0 font-headline text-lg tabular-nums ${myR >= 0 ? 'text-fairway' : 'text-error'}`}>
+                      {myR >= 0 ? '+' : ''}{myR.toFixed(2)}
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-sm text-on-surface-variant">
+                No active bets.
+                {matchFormatExpectsMainWager(matchData) && ' Start a round with a wager, or place a side bet.'}
+              </p>
+            )}
+            {matchJunkOn && (
+              <div className="pt-2 border-t border-primary/10 space-y-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Junk</p>
+                <p className="text-[12px] text-on-surface-variant">
+                  ${displayJunkAmount(matchData).toFixed(2)}/mark · Snake {Number(matchData.snake_tally) || 0} ({matchData.snake_holder_name || '—'}) · Worm {Number(matchData.worm_tally) || 0} ({matchData.worm_holder_name || '—'})
                 </p>
-              )}
-              {bets.length > 0 ? (
-                <div className="space-y-4">
-                  {betsOrdered.map(b => {
-                    const n = b.participants?.length || 0;
-                    const a = Number(b.amount || 0);
-                    const myP = b.participants?.find(x => x.user_id === user?.id);
-                    const myR = Number(myP?.net_result) || 0;
-                    const stakeLabel = b.bet_type === 'nassau'
-                      ? <>${a}<span className="text-[10px] font-normal text-on-primary-container"> ×3 legs</span></>
-                      : b.bet_type === 'stroke_play' || b.bet_type === 'stampede'
-                      ? <>${a}<span className="text-[10px] font-normal text-on-primary-container"> /round</span></>
-                      : <>${a}<span className="text-[10px] font-normal text-on-primary-container"> /hole</span></>;
+                <ul className="space-y-1">
+                  {junkRoster.map((p) => {
+                    const row = scoreboardPlayers.find((r) => r.user_id === p.user_id);
+                    const fromScores = junkMarksEarnedFromHoles(row?.holes, holes);
+                    const serverMarks = Number(p.junk_marks_for ?? p.junkMarksFor) || 0;
+                    const jCount = Math.max(serverMarks, fromScores);
+                    const isMe = p.user_id === user?.id;
                     return (
-                      <div key={b.id} className="border-b border-white/10 pb-3 last:border-0 last:pb-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <span className="text-sm font-medium block">{b.name || sideBetDisplayName(b.bet_type)}</span>
-                            <span className="text-[10px] text-on-primary-container leading-tight block mt-1">{betRulesHint(b)}</span>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="text-secondary-fixed font-bold text-sm block">{stakeLabel}</span>
-                            <span className="text-[9px] text-on-primary-container">{n} in</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between mt-2 text-[11px]">
-                          <span className="text-on-primary-container">Your net (this match)</span>
-                          <span className={`font-bold ${myR >= 0 ? 'text-secondary-fixed' : 'text-error'}`}>{myR >= 0 ? '+' : ''}{myR.toFixed(2)}</span>
-                        </div>
-                      </div>
+                      <li key={p.user_id} className="flex justify-between text-[12px]">
+                        <span className={isMe ? 'font-semibold text-primary' : 'text-on-surface-variant'}>
+                          {p.display_name || 'Player'}{isMe ? ' (you)' : ''}
+                        </span>
+                        <span className="tabular-nums font-semibold">{jCount}</span>
+                      </li>
                     );
                   })}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-on-primary-container text-sm">No active bets yet.</p>
-                  {matchFormatExpectsMainWager(matchData) && (
-                    <p className="text-[10px] text-on-primary-container/90 leading-snug rounded-md bg-primary-container/25 px-2 py-2">
-                      If you expected a main game wager here, this round was started with <span className="font-bold">$0</span> on the new-match screen (or the bets request failed). Start a new round with a wager, or use <span className="font-bold">Place Side Bet</span> below.
-                    </p>
-                  )}
-                </div>
-              )}
-              {matchJunkOn && (
-                <div className={`${bets.length > 0 ? 'mt-5 pt-5 border-t border-white/15' : 'mt-4 pt-4 border-t border-white/10'}`}>
-                  <h3 className="font-label text-xs font-bold uppercase tracking-widest text-primary-fixed mb-3">Junk ledger</h3>
-                  <div className="rounded-lg bg-primary-container/35 px-3 py-2.5 mb-3 text-[10px] space-y-2">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-primary-fixed/90">
-                      {matchData.current_hole <= 9 ? 'Front nine (1–9)' : 'Back nine (10–18)'}
-                    </p>
-                    <div className="flex justify-between gap-2 text-on-primary-container">
-                      <span>Snake tally · holder</span>
-                      <span className="font-bold text-secondary-fixed tabular-nums text-right">
-                        {Number(matchData.snake_tally) || 0}
-                        <span className="text-on-primary-container font-normal"> · </span>
-                        {matchData.snake_holder_name || '—'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-2 text-on-primary-container">
-                      <span>Worm tally · holder</span>
-                      <span className="font-bold text-secondary-fixed tabular-nums text-right">
-                        {Number(matchData.worm_tally) || 0}
-                        <span className="text-on-primary-container font-normal"> · </span>
-                        {matchData.worm_holder_name || '—'}
-                      </span>
-                    </div>
-                  </div>
-                  <ul className="space-y-2">
-                    {junkRoster.map(p => {
-                      const row = scoreboardPlayers.find((r) => r.user_id === p.user_id);
-                      const fromScores = junkMarksEarnedFromHoles(row?.holes, holes);
-                      const serverMarks = Number(p.junk_marks_for ?? p.junkMarksFor) || 0;
-                      const jCount = Math.max(serverMarks, fromScores);
-                      const isMe = p.user_id === user?.id;
-                      return (
-                        <li key={p.user_id} className={`flex justify-between items-baseline gap-2 text-[11px] ${isMe ? 'font-bold' : ''}`}>
-                          <span className={`truncate ${isMe ? 'text-secondary-fixed' : 'text-on-primary-container'}`}>
-                            {p.display_name || 'Player'}{isMe ? ' (you)' : ''}
-                          </span>
-                          <span className={`shrink-0 tabular-nums ${isMe ? 'text-secondary-fixed' : 'text-on-primary-container'}`}>
-                            {jCount}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-              {(bets.length > 0 || matchJunkOn) && (
-                <div className="mt-5 pt-5 border-t border-white/10 space-y-3">
-                  {bets.length > 0 && (
-                    matchJunkOn ? (
-                      <>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-primary-fixed uppercase tracking-wider">Bets (you)</span>
-                          <span className={`text-sm font-bold tabular-nums ${myBetNet >= 0 ? 'text-secondary-fixed' : 'text-error'}`}>{myBetNet >= 0 ? '+' : ''}{myBetNet.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center border-t border-white/10 pt-3">
-                          <span className="text-xs font-bold text-secondary-fixed uppercase tracking-wider">Total</span>
-                          <span className={`text-base font-bold tabular-nums ${totalYou >= 0 ? 'text-secondary-fixed' : 'text-error'}`}>{totalYou >= 0 ? '+' : ''}{totalYou.toFixed(2)}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-primary-fixed uppercase tracking-wider">All wagers (you)</span>
-                        <span className={`text-sm font-bold tabular-nums ${myBetNet >= 0 ? 'text-secondary-fixed' : 'text-error'}`}>{myBetNet >= 0 ? '+' : ''}{myBetNet.toFixed(2)}</span>
-                      </div>
-                    )
-                  )}
-                  {bets.length === 0 && matchJunkOn && (
-                    <div className="flex justify-between items-center text-[11px]">
-                      <span className="text-on-primary-container font-bold uppercase tracking-wider">Total</span>
-                      <span className={`font-bold tabular-nums ${myJunkNet >= 0 ? 'text-secondary-fixed' : 'text-error'}`}>{myJunkNet >= 0 ? '+' : ''}{myJunkNet.toFixed(2)}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-              <button onClick={() => navigate('/new-challenge')} className="w-full mt-6 bg-secondary-fixed text-on-secondary-fixed py-3 rounded-xl font-label font-bold text-sm shadow-lg hover:scale-[1.02] transition-transform">
-                Place Side Bet
-              </button>
-            </div>
-
-            {/* Quick score entry — same tap modal as the grid */}
-            <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm">
-              <h3 className="font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Quick Score Entry</h3>
-              <p className="text-sm text-on-surface-variant mb-4">
-                Hole {matchData.current_hole} · Par {holes.find(h => h.hole_number === matchData.current_hole)?.par ?? '?'}
-                {matchJunkOn && (
-                  <span className="block text-[11px] mt-1 text-primary font-semibold leading-snug">
-                    Winning junk ${displayJunkAmount(matchData).toFixed(2)}/mark (par+). Snake/Worm tally toward settlement at holes 9 &amp; 18.
-                  </span>
-                )}
-              </p>
-              <button
-                type="button"
-                disabled={!user?.id}
-                onClick={() => {
-                  if (!user?.id) return;
-                  const ch = matchData.current_hole;
-                  const row = scoreboardPlayers.find((p) => p.user_id === user.id);
-                  const sc = row?.holes?.find(s => s.hole_number === ch);
-                  const hp = holes.find(h => h.hole_number === ch);
-                  openScoreModal(ch, user.id, user.display_name || 'You', hp?.par ?? 4, sc?.strokes, sc?.junk);
-                }}
-                className="w-full py-4 bg-primary text-on-primary rounded-2xl font-label font-bold text-sm shadow-lg hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-40"
-              >
-                {matchJunkOn ? 'Enter score & junk' : 'Enter your score'}
-              </button>
-            </div>
+                </ul>
+              </div>
+            )}
+            {(bets.length > 0 || matchJunkOn) && (
+              <div className="pt-2 border-t border-primary/10 flex justify-between items-center">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Your total</span>
+                <span className={`font-headline text-xl tabular-nums ${totalYou >= 0 ? 'text-fairway' : 'text-error'}`}>
+                  {totalYou >= 0 ? '+' : ''}{totalYou.toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
-        </div>
+        </section>
       </main>
 
       {scoreModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           <button
             type="button"
             aria-label="Close score entry"
-            className="absolute inset-0 bg-primary/60 backdrop-blur-[2px] border-0 cursor-default"
+            className="absolute inset-0 bg-primary/55 border-0 cursor-default"
             onClick={closeScoreModal}
           />
           <div
-            className="relative z-10 w-full max-w-md bg-surface-container-lowest rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col score-modal-enter"
-            onClick={e => e.stopPropagation()}
+            className="relative z-10 w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-xl overflow-hidden max-h-[92dvh] flex flex-col score-modal-enter pb-[env(safe-area-inset-bottom)]"
+            onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-labelledby="score-modal-title"
           >
-            <div className="bg-primary px-6 py-6 text-center flex-shrink-0">
+            <div className="bg-primary px-4 py-4 text-center flex-shrink-0">
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/30 sm:hidden" />
               <div className="flex justify-between items-start">
-                <button type="button" onClick={closeScoreModal} className="text-on-primary/60 hover:text-on-primary transition-colors p-0 border-0 bg-transparent cursor-pointer">
+                <button type="button" onClick={closeScoreModal} className="text-on-primary/70 hover:text-on-primary transition-colors p-0 border-0 bg-transparent cursor-pointer tap-target flex items-center justify-center">
                   <span className="material-symbols-outlined">close</span>
                 </button>
-                <div className="text-center flex-1">
-                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-secondary-fixed/80">
+                <div className="text-center flex-1 min-w-0 px-2">
+                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.16em] text-secondary-fixed">
                     Hole {scoreModal.holeNumber} · Par {scoreModal.par}
                   </p>
-                  <h3 id="score-modal-title" className="font-headline italic text-3xl text-on-primary mt-1">{scoreModal.displayName}</h3>
+                  <h3 id="score-modal-title" className="font-headline italic text-2xl text-on-primary mt-0.5 truncate">{scoreModal.displayName}</h3>
                 </div>
-                <div className="w-6" />
+                <div className="w-11" />
               </div>
             </div>
-            <div className="overflow-y-auto p-6 space-y-8 flex-1 min-h-0">
+            <div className="overflow-y-auto p-4 space-y-5 flex-1 min-h-0">
               <div>
-                <p className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center mb-4">Select strokes</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {strokePresetsForPar(scoreModal.par).map(n => {
+                <p className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center mb-3">Strokes</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {strokePresetsForPar(scoreModal.par).map((n) => {
                     const diff = n - scoreModal.par;
                     const isSel = modalStrokes === n && modalManualScoreDraft === '';
                     const label = strokeRelativeLabel(n, scoreModal.par);
@@ -2390,13 +2448,13 @@ const ScorecardScreen = () => {
                           setModalStrokes(n);
                           setModalManualScoreDraft('');
                         }}
-                        className={`aspect-square flex flex-col items-center justify-center rounded-2xl border-2 transition-all group min-h-[4.5rem] ${
+                        className={`aspect-square flex flex-col items-center justify-center rounded-xl border-2 transition-all min-h-[4.25rem] hole-chip ${
                           isSel
-                            ? 'border-4 border-secondary-fixed bg-secondary-fixed/10 shadow-md'
-                            : 'border-surface-container hover:border-primary'
+                            ? 'border-secondary-fixed bg-secondary-fixed/15'
+                            : 'border-surface-container'
                         }`}
                       >
-                        <span className={`font-headline text-3xl text-primary ${isSel ? 'font-bold' : 'group-hover:scale-110 transition-transform'}`}>{n}</span>
+                        <span className={`font-headline text-3xl text-primary ${isSel ? 'font-bold' : ''}`}>{n}</span>
                         {isSel && (
                           <span className={`text-[10px] font-bold uppercase -mt-0.5 tracking-tight ${diff === -1 ? 'text-secondary' : diff < 0 ? 'text-primary' : diff === 0 ? 'text-on-surface-variant' : 'text-error'}`}>
                             {label}
@@ -2406,13 +2464,13 @@ const ScorecardScreen = () => {
                     );
                   })}
                 </div>
-                <label className="block mt-5">
-                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center w-full block mb-2">Other score</span>
+                <label className="block mt-4">
+                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center w-full block mb-2">Other</span>
                   <input
                     type="text"
                     inputMode="numeric"
                     autoComplete="off"
-                    placeholder="e.g. 8 or 9"
+                    placeholder="8 or 9"
                     value={modalManualScoreDraft}
                     onChange={(e) => {
                       let raw = e.target.value.replace(/\D/g, '').slice(0, 2);
@@ -2433,7 +2491,7 @@ const ScorecardScreen = () => {
                         setModalManualScoreDraft('');
                       }
                     }}
-                    className="score-input w-full h-11 px-4 rounded-xl border-2 border-outline-variant/40 bg-surface-container-lowest text-center font-headline text-xl text-primary font-bold placeholder:text-on-surface-variant/40 placeholder:font-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="score-input w-full h-12 px-4 rounded-lg border-2 border-outline-variant/40 bg-white text-center font-headline text-xl text-primary font-bold placeholder:text-on-surface-variant/40 placeholder:font-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                 </label>
               </div>
@@ -2447,16 +2505,15 @@ const ScorecardScreen = () => {
                 />
               )}
             </div>
-            <div className="p-6 bg-surface-container-lowest border-t border-surface-container flex-shrink-0">
+            <div className="p-4 bg-white border-t border-surface-container flex-shrink-0">
               <button
                 type="button"
                 disabled={modalStrokes == null || modalStrokes < 1}
                 onClick={confirmModalScore}
-                className="w-full py-5 bg-primary text-on-primary rounded-2xl font-label font-bold text-base shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
+                className="w-full py-4 bg-primary text-on-primary rounded-lg font-label font-bold text-base active:scale-[0.98] transition-transform disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
               >
-                Confirm Score
+                Confirm score
               </button>
-              <p className="text-center mt-4 text-on-surface-variant/40 font-label text-[10px] uppercase tracking-widest font-bold">Tap background to cancel</p>
             </div>
           </div>
         </div>
@@ -2840,38 +2897,25 @@ const NewMatchScreen = () => {
   const otherUsers = users.filter((u) => !u.is_friend);
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <header className="bg-emerald-950 text-emerald-50 flex items-center justify-between w-full px-6 py-4 z-50 fixed top-0">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="hover:bg-emerald-900/50 transition-colors p-2 rounded-full">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className="font-serif italic text-xl">New Match</h1>
-        </div>
-      </header>
-      <main className="max-w-screen-md mx-auto px-6 pt-24 pb-32">
-        <section className="mb-12 relative overflow-hidden rounded-xl bg-primary min-h-[180px] flex items-end p-8">
-          <div className="absolute inset-0 opacity-40">
-            <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMYqXHBnBQuaGpBdyl1RYIls0H3TNdePNoe9U26OgTZbLA7ftqx7bK08zc63_odBrzK3wsKVXShKXn9cPxA_kRyZIEMIvdHqVJfkETp8TP7lIFHuRSsp4An7JzLMgrdIgYsqSHopy2nk2_PJkdtaBMApGYDqXQlxfDgRnaTXhskZEUxtdL-84NGtBcjRiLOpztWSDtbXATG9umg6yyKxCrxbbSJGkGOWnACA77G75Fq9fYMGZGjyGeysVQdGdfcuPiDYMSZOY0k8U"/>
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent"></div>
-          <div className="relative z-10">
-            <h2 className="text-4xl font-bold text-white tracking-tight -mb-1">Start New Match</h2>
-            <p className="text-emerald-100 font-medium opacity-90">Set the stakes, invite the crew.</p>
-          </div>
+    <div className="bg-surface text-on-surface min-h-[100dvh]">
+      <TopHeader title="New Match" backTo="/" />
+      <main className="page-pad phone-page px-4 space-y-4">
+        <section className="rise-in py-1">
+          <h2 className="font-headline italic text-2xl text-primary leading-tight">Set up the round</h2>
+          <p className="text-sm text-on-surface-variant mt-1">Format, stakes, then tee off.</p>
         </section>
 
-        <div className="space-y-8">
+        <div className="space-y-4">
           {/* Match format */}
-          <div className="bg-surface-container-low p-6 rounded-xl flex flex-col gap-4">
+          <div className="score-sheet p-4 rounded-xl flex flex-col gap-3">
             <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Match Format</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {gameTypes.map(gt => (
                 <button
                   key={gt.id}
                   type="button"
                   onClick={() => setGameType(gt.id)}
-                  className={`px-4 py-3 rounded-lg text-sm font-bold transition-all ${gameType === gt.id ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:text-primary'}`}
+                  className={`px-3 py-3 rounded-lg text-sm font-bold transition-all ${gameType === gt.id ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
                 >
                   {gt.label}
                 </button>
@@ -3822,80 +3866,76 @@ const LeaderboardScreen = () => {
   const leader = data?.leaderboard?.[0];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <TopHeader title="Leaderboard" />
-      <main className="max-w-5xl mx-auto px-6 pt-24 pb-32">
-        <section className="mb-12">
-          <div className="mb-8 space-y-1">
-            <p className="font-label text-xs uppercase tracking-widest text-secondary font-bold">Current Standing</p>
-            <h2 className="font-headline italic text-4xl md:text-5xl -tracking-tight text-primary">The Clubhouse Leader</h2>
+      <main className="page-pad phone-page px-4 space-y-6">
+        <section className="rise-in space-y-3">
+          <div>
+            <p className="font-label text-[10px] uppercase tracking-widest text-secondary font-bold">Standings</p>
+            <h2 className="font-headline italic text-2xl text-primary leading-tight">Money board</h2>
           </div>
 
           {leader && (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div className="md:col-span-7 bg-primary rounded-xl p-8 text-on-primary relative overflow-hidden min-h-[280px] flex flex-col justify-between">
-                <div className="relative z-10 flex justify-between items-start">
-                  <span className="bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full text-[10px] font-bold uppercase">Leading</span>
-                  <span className="material-symbols-outlined text-secondary-fixed text-4xl" style={{fontVariationSettings: "'FILL' 1"}}>trophy</span>
+            <div className="space-y-2">
+              <div className="bg-primary rounded-xl p-4 text-on-primary">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase tracking-wider text-secondary-fixed font-bold">Leader</p>
+                    <p className="font-headline italic text-2xl truncate mt-0.5">{leader.display_name}</p>
+                  </div>
+                  <span className="material-symbols-outlined text-secondary-fixed text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>trophy</span>
                 </div>
-                <div className="relative z-10">
-                  <p className="font-headline italic text-4xl mb-2">{leader.display_name}</p>
-                  <div className="flex items-center gap-4">
-                    <div><p className="text-[10px] uppercase opacity-60">Net Gain</p><p className="text-3xl font-extrabold text-secondary-fixed">{leader.net_gain >= 0 ? '+' : ''}${leader.net_gain.toFixed(0)}</p></div>
-                    <div className="w-px h-10 bg-on-primary/10"></div>
-                    <div><p className="text-[10px] uppercase opacity-60">W/L</p><p className="text-3xl font-extrabold italic">{leader.wins}:{leader.losses}</p></div>
+                <div className="flex items-end gap-5 mt-3">
+                  <div>
+                    <p className="text-[10px] uppercase text-white/55">Net</p>
+                    <p className="text-2xl font-extrabold text-secondary-fixed tabular-nums">{leader.net_gain >= 0 ? '+' : ''}${leader.net_gain.toFixed(0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase text-white/55">W/L</p>
+                    <p className="text-2xl font-extrabold italic tabular-nums">{leader.wins}:{leader.losses}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="md:col-span-5 flex flex-col gap-4">
+              <ul className="divide-y divide-primary/8 score-sheet rounded-xl overflow-hidden">
                 {data.leaderboard.slice(1).map((p, i) => (
-                  <div key={p.id} className={`p-5 rounded-xl flex items-center justify-between ${p.net_gain < 0 ? 'bg-error/5 border border-error/10' : 'bg-surface-container-lowest border border-outline-variant/10'}`}>
-                    <div className="flex items-center gap-4">
-                      <span className={`font-headline italic text-2xl ${p.net_gain < 0 ? 'text-error/40' : 'text-outline-variant'}`}>{String(i + 2).padStart(2, '0')}</span>
-                      <div className="w-10 h-10 rounded-full bg-stone-200 overflow-hidden">
-                        {p.avatar_url && <img className="w-full h-full object-cover" src={p.avatar_url} />}
-                      </div>
-                      <div>
-                        <p className="font-bold text-primary">{p.display_name}</p>
-                        {p.net_gain < 0 && i === data.leaderboard.length - 2 && <p className="text-[10px] text-error uppercase">Biggest Loser</p>}
+                  <li key={p.id} className="px-3.5 py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="font-headline italic text-lg text-outline-variant w-6 tabular-nums">{i + 2}</span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-primary truncate text-[15px]">{p.display_name}</p>
                       </div>
                     </div>
-                    <p className={`font-bold ${p.net_gain >= 0 ? 'text-primary' : 'text-error'}`}>{p.net_gain >= 0 ? '+' : ''}${p.net_gain.toFixed(2)}</p>
-                  </div>
+                    <p className={`font-bold tabular-nums shrink-0 ${p.net_gain >= 0 ? 'text-fairway' : 'text-error'}`}>
+                      {p.net_gain >= 0 ? '+' : ''}${p.net_gain.toFixed(2)}
+                    </p>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
         </section>
 
-        <section className="border-t border-outline-variant/20 pt-14 mt-4">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-            <div className="space-y-1">
-              <p className="font-label text-xs uppercase tracking-widest text-secondary font-bold">Your history</p>
-              <h2 className="font-headline italic text-3xl md:text-4xl -tracking-tight text-primary">Previous rounds</h2>
-              <p className="text-on-surface-variant text-sm max-w-xl">
-                Saved rounds from matches you&apos;ve played, newest first. Resume in-progress rounds or edit finished ones.
-              </p>
-            </div>
+        <section className="border-t border-primary/10 pt-5 space-y-3">
+          <div>
+            <p className="font-label text-[10px] uppercase tracking-widest text-secondary font-bold">History</p>
+            <h2 className="font-headline italic text-2xl text-primary">Your rounds</h2>
           </div>
 
           {roundsLoading && (
-            <p className="text-on-surface-variant text-sm py-8">Loading your rounds…</p>
+            <p className="text-on-surface-variant text-sm py-6">Loading rounds…</p>
           )}
           {!roundsLoading && roundHistory.length === 0 && (
-            <div className="bg-surface-container-low rounded-xl p-8 text-center border border-outline-variant/15">
-              <p className="font-headline italic text-lg text-primary mb-2">No scorecards yet</p>
-              <p className="text-on-surface-variant text-sm mb-4">
-                When you record scores in a match, your rounds will appear here with date and course.
-              </p>
-              <Link to="/" className="inline-block text-secondary font-bold text-sm uppercase tracking-widest hover:underline">
-                Back to Clubhouse
+            <div className="py-6">
+              <p className="font-headline italic text-lg text-primary mb-1">No rounds yet</p>
+              <p className="text-on-surface-variant text-sm mb-3">Play a match and your history shows up here.</p>
+              <Link to="/" className="text-secondary font-bold text-sm uppercase tracking-wider">
+                Home
               </Link>
             </div>
           )}
           {!roundsLoading && roundHistory.length > 0 && (
-            <div className="space-y-10">
+            <div className="space-y-3">
               {roundHistory.map(({ match, scoreData }) => {
                 const roundDate = match.finished_at || match.tee_time || match.created_at;
                 const dateLabel = roundDate
@@ -3903,93 +3943,49 @@ const LeaderboardScreen = () => {
                       weekday: 'short',
                       month: 'short',
                       day: 'numeric',
-                      year: 'numeric',
                     })
                   : '';
-                const timeLabel = roundDate
-                  ? new Date(roundDate).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-                  : '';
-                const holesCount = (scoreData.holes || []).length;
-                const parTotal = (scoreData.holes || []).reduce((s, h) => s + h.par, 0);
+                const holesCount = (scoreData?.holes || []).length;
                 const status = String(match.status || '').toLowerCase();
                 const completed = status === 'completed' || status === 'finished';
                 const abandoned = match.status === 'abandoned';
                 const inProgress = !completed && !abandoned;
                 const canEdit = completed;
                 return (
-                  <article
-                    key={match.id}
-                    className="bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-sm overflow-hidden"
-                  >
-                    <div className="p-5 md:p-6 border-b border-outline-variant/15 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span
-                            className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                              completed
-                                ? 'bg-primary/10 text-primary'
-                                : abandoned
-                                  ? 'bg-surface-container-high text-on-surface-variant'
-                                  : 'bg-secondary-fixed/40 text-on-secondary-fixed-variant'
-                            }`}
-                          >
-                            {completed ? 'Completed' : abandoned ? 'Archived' : 'In progress'}
-                          </span>
-                          {match.tee_name && (
-                            <span className="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">
-                              {match.tee_name}
-                            </span>
-                          )}
+                  <article key={match.id} className="score-sheet rounded-xl overflow-hidden">
+                    <div className="p-3.5 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                            {completed ? 'Done' : abandoned ? 'Archived' : 'Live'} · {dateLabel || '—'}
+                          </p>
+                          <h3 className="font-headline text-lg text-primary leading-tight truncate">
+                            {match.name || match.course_name || 'Round'}
+                          </h3>
+                          <p className="text-[12px] text-on-surface-variant truncate">
+                            {holesCount ? `${holesCount} holes` : 'No scores'}
+                            {match.tee_name ? ` · ${match.tee_name}` : ''}
+                          </p>
                         </div>
-                        <h3 className="font-headline text-xl md:text-2xl text-primary font-bold leading-tight">
-                          {match.name || match.course_name || 'Round'}
-                        </h3>
-                        <p className="text-on-surface-variant text-sm mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="inline-flex items-center gap-1">
-                            <span className="material-symbols-outlined text-base">calendar_today</span>
-                            {dateLabel || 'Date unknown'}
-                            {timeLabel ? ` · ${timeLabel}` : ''}
-                          </span>
-                          {match.course_location && (
-                            <span className="inline-flex items-center gap-1">
-                              <span className="material-symbols-outlined text-base">location_on</span>
-                              {match.course_location}
-                            </span>
-                          )}
-                          {holesCount > 0 && (
-                            <span>
-                              {holesCount} holes{parTotal ? ` · Par ${parTotal}` : ''}
-                            </span>
-                          )}
-                        </p>
                       </div>
-                      <div className="shrink-0 flex items-center gap-2">
+                      <div className="flex gap-2">
                         {(inProgress || canEdit) && (
                           <Link
                             to={`/scorecard?matchId=${match.id}&mode=${inProgress ? 'resume' : 'edit'}`}
-                            className="inline-flex items-center justify-center gap-2 bg-secondary-fixed text-on-secondary-fixed px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all"
+                            className="flex-1 inline-flex items-center justify-center gap-1 bg-secondary-fixed text-on-secondary-fixed py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider"
                           >
                             {inProgress ? 'Resume' : 'Edit'}
-                            <span className="material-symbols-outlined text-sm">play_arrow</span>
                           </Link>
                         )}
                         <Link
                           to={`/match-summary/${match.id}`}
-                          className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all"
+                          className="flex-1 inline-flex items-center justify-center gap-1 bg-primary text-on-primary py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider"
                         >
-                          Full summary
-                          <span className="material-symbols-outlined text-sm">chevron_right</span>
+                          Summary
                         </Link>
                       </div>
                     </div>
-                    <div className="p-4 md:p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-headline italic text-primary">Scorecard</h4>
-                        <span className="flex items-center gap-1 text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">
-                          <span className="material-symbols-outlined text-xs">swipe_left</span>
-                          Scroll
-                        </span>
-                      </div>
+                    <div className="px-3 pb-3">
                       <RoundHistoryScorecardMini scoreData={scoreData} user={user} />
                     </div>
                   </article>
@@ -4042,67 +4038,79 @@ const WalletScreen = () => {
   const balance = wallet?.balance || 0;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <TopHeader title="Wallet" />
-      <main className="max-w-7xl mx-auto px-6 pt-24 pb-32">
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end mb-20">
-          <div className="lg:col-span-7">
-            <span className="text-secondary font-bold uppercase tracking-[0.2em] text-xs mb-4 block">Current Liquidity</span>
-            <h2 className="font-headline text-7xl md:text-8xl italic font-light tracking-tighter leading-none mb-8">
-              ${Math.floor(balance).toLocaleString()}<span className="text-secondary-fixed-dim">.{String(Math.round((balance % 1) * 100)).padStart(2, '0')}</span>
-            </h2>
-            <div className="flex gap-4">
-              {showDeposit ? (
-                <div className="flex items-center gap-2">
-                  <input type="number" className="border rounded-md px-4 py-3 w-32 font-bold" placeholder="Amount"
-                    value={depositAmt} onChange={e => setDepositAmt(e.target.value)} autoFocus />
-                  <button onClick={handleDeposit} className="bg-primary text-on-primary px-6 py-3 rounded-md font-bold text-sm">Add</button>
-                  <button onClick={handleWithdraw} className="bg-surface-container-high text-on-surface px-6 py-3 rounded-md font-bold text-sm">Pull</button>
-                  <button onClick={() => setShowDeposit(false)} className="text-on-surface-variant px-3 py-3 text-sm">Cancel</button>
-                </div>
-              ) : (
-                <>
-                  <button onClick={() => setShowDeposit(true)} className="bg-primary text-on-primary px-8 py-4 rounded-md font-bold text-sm tracking-wide">Deposit</button>
-                  <button onClick={() => setShowDeposit(true)} className="bg-surface-container-high text-on-surface px-8 py-4 rounded-md font-bold text-sm tracking-wide">Withdraw</button>
-                </>
-              )}
+      <main className="page-pad phone-page px-4 space-y-5">
+        <section className="rise-in">
+          <p className="text-[10px] uppercase tracking-widest font-bold text-secondary mb-1">Balance</p>
+          <h2 className="font-headline italic text-5xl tracking-tight leading-none text-primary">
+            ${Math.floor(balance).toLocaleString()}
+            <span className="text-2xl text-sand">.{String(Math.round((balance % 1) * 100)).padStart(2, '0')}</span>
+          </h2>
+          {showDeposit ? (
+            <div className="mt-4 space-y-2">
+              <input
+                type="number"
+                inputMode="decimal"
+                className="w-full border border-primary/15 rounded-lg px-4 py-3.5 font-bold text-lg"
+                placeholder="Amount"
+                value={depositAmt}
+                onChange={(e) => setDepositAmt(e.target.value)}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button type="button" onClick={handleDeposit} className="flex-1 bg-primary text-on-primary py-3.5 rounded-lg font-bold text-sm">Add</button>
+                <button type="button" onClick={handleWithdraw} className="flex-1 bg-surface-container-high text-on-surface py-3.5 rounded-lg font-bold text-sm">Pull</button>
+                <button type="button" onClick={() => setShowDeposit(false)} className="px-3 text-on-surface-variant text-sm font-semibold">Cancel</button>
+              </div>
             </div>
-          </div>
-          <div className="lg:col-span-5 bg-surface-container-lowest p-8 rounded-xl shadow-lg">
-            <h3 className="font-headline text-2xl italic mb-6">Performance Yield</h3>
-            {stats && (
-              <>
-                <div className="flex items-center justify-between mb-2"><span className="text-sm">Win Rate</span><span className="text-primary font-bold">{stats.winRate}%</span></div>
-                <div className="w-full bg-surface-container-low h-1 rounded-full mb-6"><div className="bg-primary h-1 rounded-full" style={{width: `${stats.winRate}%`}}></div></div>
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                  <div><p className="text-[10px] uppercase font-bold">Wins</p><p className="font-serif text-2xl italic text-primary">{stats.wins}</p></div>
-                  <div><p className="text-[10px] uppercase font-bold">Losses</p><p className="font-serif text-2xl italic text-error">{stats.losses}</p></div>
-                </div>
-              </>
-            )}
-          </div>
+          ) : (
+            <div className="flex gap-2 mt-4">
+              <button type="button" onClick={() => setShowDeposit(true)} className="flex-1 bg-primary text-on-primary py-3.5 rounded-lg font-bold text-sm">Deposit</button>
+              <button type="button" onClick={() => setShowDeposit(true)} className="flex-1 border border-primary/15 bg-white/70 text-primary py-3.5 rounded-lg font-bold text-sm">Withdraw</button>
+            </div>
+          )}
         </section>
 
-        <div className="space-y-4">
-          <h4 className="font-headline text-2xl italic">Transaction History</h4>
-          {transactions.length === 0 && <p className="text-on-surface-variant">No transactions yet.</p>}
-          {transactions.map(t => (
-            <div key={t.id} className="bg-surface-container-low p-4 rounded-lg flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${t.type === 'deposit' || t.type === 'bet_payout' ? 'bg-primary/10 text-primary' : 'bg-error/10 text-error'}`}>
-                  <span className="material-symbols-outlined">{t.type === 'deposit' || t.type === 'bet_payout' ? 'arrow_downward' : 'arrow_upward'}</span>
-                </div>
-                <div>
-                  <p className="font-bold text-sm">{t.description || t.type}</p>
-                  <p className="text-[10px] text-on-surface-variant">{new Date(t.created_at).toLocaleDateString()}</p>
-                </div>
-              </div>
-              <p className={`font-bold text-sm ${t.type === 'deposit' || t.type === 'bet_payout' ? 'text-primary' : 'text-error'}`}>
-                {t.type === 'deposit' || t.type === 'bet_payout' ? '+' : '-'}${t.amount.toLocaleString()}
-              </p>
+        {stats && (
+          <section className="score-sheet rounded-xl p-3.5 rise-in-delay">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-on-surface-variant">Win rate</span>
+              <span className="text-primary font-bold tabular-nums">{stats.winRate}%</span>
             </div>
-          ))}
-        </div>
+            <div className="w-full bg-surface-container-low h-1.5 rounded-full mb-3">
+              <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${stats.winRate}%` }} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-primary/8">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-outline">Wins</p>
+                <p className="font-headline italic text-2xl text-primary tabular-nums">{stats.wins}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-outline">Losses</p>
+                <p className="font-headline italic text-2xl text-error tabular-nums">{stats.losses}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="space-y-2">
+          <h4 className="font-headline italic text-xl text-primary">Activity</h4>
+          {transactions.length === 0 && <p className="text-on-surface-variant text-sm">No transactions yet.</p>}
+          <ul className="divide-y divide-primary/8 score-sheet rounded-xl overflow-hidden">
+            {transactions.map((t) => (
+              <li key={t.id} className="px-3.5 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-[14px] text-primary truncate">{t.description || t.type}</p>
+                  <p className="text-[11px] text-on-surface-variant">{new Date(t.created_at).toLocaleDateString()}</p>
+                </div>
+                <p className={`font-bold text-sm tabular-nums shrink-0 ${t.type === 'deposit' || t.type === 'bet_payout' ? 'text-fairway' : 'text-error'}`}>
+                  {t.type === 'deposit' || t.type === 'bet_payout' ? '+' : '-'}${t.amount.toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
       </main>
       <BottomNav />
     </div>
@@ -4220,22 +4228,17 @@ const NewChallengeScreen = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-32">
-      <header className="bg-[#012d1d] flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-[#ffe088]"><span className="material-symbols-outlined">arrow_back</span></button>
-          <h1 className="text-xl font-serif italic font-bold text-[#ffe088]">New Wager</h1>
-        </div>
-      </header>
-      <main className="max-w-4xl mx-auto w-full px-6 pt-24">
-        <div className="mb-12">
-          <h2 className="text-5xl font-headline italic tracking-tight text-primary mb-2">New Challenge</h2>
-          <p className="text-on-surface-variant text-sm uppercase tracking-widest">
+    <div className="min-h-[100dvh]">
+      <TopHeader title="Side bet" backTo="/scorecard" />
+      <main className="page-pad phone-page px-4 space-y-4">
+        <div className="rise-in">
+          <h2 className="text-2xl font-headline italic tracking-tight text-primary">New wager</h2>
+          <p className="text-on-surface-variant text-sm mt-1">
             {match ? `${match.course_name} · Hole ${match.current_hole}` : 'Propose a wager to the group'}
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          <div className="md:col-span-7 space-y-10">
+        <div className="space-y-5">
+          <div className="space-y-5">
             {matchId && (
               <section>
                 <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-on-surface-variant">Round options</label>
@@ -4345,42 +4348,39 @@ const NewChallengeScreen = () => {
               </section>
             )}
             <section>
-              <label className="block text-[10px] font-bold uppercase tracking-widest mb-4">Wager Amount (per player)</label>
-              <div className="bg-surface-container-low rounded-xl p-8 flex flex-col items-center">
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-2xl font-bold text-primary opacity-40">$</span>
-                  <input className="score-input bg-transparent border-none text-6xl font-extrabold text-primary w-32 text-center focus:ring-0"
-                    value={amount} onChange={e => setAmount(Number(e.target.value))} type="number" min="1" />
+              <label className="block text-[10px] font-bold uppercase tracking-widest mb-3">Amount / player</label>
+              <div className="score-sheet rounded-xl p-4 flex flex-col items-center">
+                <div className="flex items-baseline gap-1 mb-3">
+                  <span className="text-xl font-bold text-primary/40">$</span>
+                  <input className="score-input bg-transparent border-none text-4xl font-extrabold text-primary w-28 text-center focus:ring-0"
+                    value={amount} onChange={(e) => setAmount(Number(e.target.value))} type="number" min="1" inputMode="decimal" />
                 </div>
-                <div className="flex gap-2">
-                  {[5, 10, 20, 50].map(v => (
-                    <button key={v} onClick={() => setAmount(v)}
-                      className={`px-4 py-2 rounded-lg text-sm font-bold ${amount === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}>${v}</button>
+                <div className="flex gap-2 w-full">
+                  {[5, 10, 20, 50].map((v) => (
+                    <button key={v} type="button" onClick={() => setAmount(v)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold ${amount === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}>${v}</button>
                   ))}
                 </div>
               </div>
             </section>
-          </div>
-          <div className="md:col-span-5">
-            <div className="bg-secondary-fixed p-6 rounded-xl relative overflow-hidden shadow-sm">
-              <p className="font-headline text-2xl italic text-on-secondary-fixed mb-1">
-                {betTypes.find(b => b.id === betType)?.label}
+            <div className="score-sheet rounded-xl p-4 bg-secondary-fixed/90">
+              <p className="font-headline text-xl italic text-on-secondary-fixed mb-1">
+                {betTypes.find((b) => b.id === betType)?.label}
               </p>
-              <p className="text-sm text-on-secondary-fixed-variant mb-6">
-                {betType === 'nassau' ? `$${amount} per leg × 3 (Out / In / Total)` :
-                  betType === 'stroke_play' ? `$${amount} on full round total` :
-                  `$${amount} per player per hole`}
+              <p className="text-sm text-on-secondary-fixed-variant mb-4">
+                {betType === 'nassau' ? `$${amount} per leg × 3` :
+                  betType === 'stroke_play' ? `$${amount} on full round` :
+                  `$${amount} per hole`}
                 {needsHoleScope() && (
-                  <span className="block mt-2 text-on-secondary-fixed">
-                    {betScope === 'each_hole' && 'Coverage: every hole'}
-                    {betScope === 'one_hole' && `Coverage: hole ${startHole} only`}
-                    {betScope === 'rest_of_round' && `Coverage: holes ${startHole}–18`}
+                  <span className="block mt-1 text-on-secondary-fixed">
+                    {betScope === 'each_hole' && 'Every hole'}
+                    {betScope === 'one_hole' && `Hole ${startHole} only`}
+                    {betScope === 'rest_of_round' && `Holes ${startHole}–18`}
                   </span>
                 )}
-                {!needsHoleScope() && (match?.current_hole ? <span className="block mt-2">Match at hole {match.current_hole}</span> : null)}
               </p>
-              <button onClick={handleSubmit} className="w-full bg-primary text-white py-4 rounded-md font-bold mt-4 shadow-lg hover:opacity-90 transition-opacity">
-                Send Challenge
+              <button type="button" onClick={handleSubmit} className="w-full bg-primary text-white py-4 rounded-lg font-bold active:scale-[0.98] transition-transform">
+                Place bet
               </button>
             </div>
           </div>
@@ -4599,43 +4599,31 @@ const MatchSummaryScreen = () => {
   };
 
   return (
-    <div className="bg-background text-on-surface min-h-screen pb-32">
-      <header className="bg-[#012d1d] text-[#ffe088] flex justify-between items-center w-full px-6 h-16 fixed top-0 z-50">
-        <div className="flex items-center gap-4">
-          <button type="button" onClick={() => navigate(-1)} className="material-symbols-outlined cursor-pointer hover:bg-white/10 p-2 rounded-full">arrow_back</button>
-          <h1 className="font-headline text-xl tracking-tight">Match Summary</h1>
-        </div>
-        <div className="w-8 h-8 rounded-full overflow-hidden border border-[#ffe088]/30 bg-surface-container-highest">
-          {user?.avatar_url
-            ? <img alt="" className="w-full h-full object-cover" src={user.avatar_url} />
-            : <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-primary">{initials(user?.display_name)}</div>}
-        </div>
-      </header>
+    <div className="bg-background text-on-surface min-h-[100dvh]">
+      <TopHeader title="Summary" backTo="/" />
 
-      <main className="pt-20 px-6 max-w-2xl mx-auto">
-        <section className="mt-8 mb-12 text-center">
-          <div className="inline-block px-4 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold text-[10px] tracking-widest uppercase mb-4">
-            Round Complete
-          </div>
-          <h2 className="text-4xl md:text-5xl font-headline italic text-primary leading-tight">
+      <main className="page-pad phone-page px-4">
+        <section className="mb-6 rise-in">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-1">Round complete</p>
+          <h2 className="text-2xl font-headline italic text-primary leading-tight">
             {gameTypeLc === 'skins'
-              ? (<><span className="not-italic text-2xl md:text-3xl font-bold tracking-tight block mb-1 text-on-surface-variant">Skins leader</span><br />{match.name || match.course_name || 'Invitational'}</>)
+              ? (<>Skins · {match.name || match.course_name || 'Round'}</>)
               : matchIsTeamsSummary
-                ? (<><span className="not-italic text-2xl md:text-3xl font-bold tracking-tight block mb-1 text-on-surface-variant">Teams · best ball</span><br />{match.name || match.course_name || 'Invitational'}</>)
+                ? (<>Teams · {match.name || match.course_name || 'Round'}</>)
               : matchIsStampede
-                ? (<><span className="not-italic text-2xl md:text-3xl font-bold tracking-tight block mb-1 text-on-surface-variant">Stampede</span>Champion of the<br />{match.name || match.course_name || 'Invitational'}</>)
-                : (<>Champion of the<br />{match.name || match.course_name || 'Invitational'}</>)}
+                ? (<>Stampede · {match.name || match.course_name || 'Round'}</>)
+                : (<>{match.name || match.course_name || 'Round'}</>)}
           </h2>
-          <p className="text-on-surface-variant font-body mt-4 opacity-80">
-            {holes.length} Holes • Par {parTotal}{dateStr ? ` • ${dateStr}` : ''}
+          <p className="text-on-surface-variant font-body text-sm mt-2">
+            {holes.length} holes · Par {parTotal}{dateStr ? ` · ${dateStr}` : ''}
             {gameTypeLc === 'skins' && skinsBet && (
               <span className="block mt-1 text-[11px] font-bold text-primary/90">
-                Final skins carry <span className="tabular-nums">${Number(skinsBet.carry_over || 0).toFixed(2)}</span>
+                Carry ${Number(skinsBet.carry_over || 0).toFixed(2)}
               </span>
             )}
           </p>
           {heroWinner && (
-            <p className="mt-3 text-lg font-body font-semibold text-primary">{heroWinner.display_name}</p>
+            <p className="mt-2 text-base font-body font-semibold text-primary">{heroWinner.display_name}</p>
           )}
         </section>
 
