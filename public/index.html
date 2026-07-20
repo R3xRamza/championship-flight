@@ -1520,6 +1520,7 @@ const ScorecardScreen = () => {
   const [finishing, setFinishing] = useState(false);
   const [finishRoundAwaitingConfirm, setFinishRoundAwaitingConfirm] = useState(false);
   const [holeNavBusy, setHoleNavBusy] = useState(false);
+  const [viewHole, setViewHole] = useState(null);
   const finishConfirmTimeoutRef = useRef(null);
   const requestedMatchId = (searchParams.get('matchId') || '').trim();
   const requestedMode = (searchParams.get('mode') || '').trim().toLowerCase();
@@ -1561,6 +1562,11 @@ const ScorecardScreen = () => {
   useEffect(() => {
     loadData();
   }, [loadData, location.pathname, location.key]);
+
+  useEffect(() => {
+    if (matchData?.current_hole == null) return;
+    setViewHole(Number(matchData.current_hole));
+  }, [matchData?.id]);
 
   useEffect(() => {
     if (!matchData) return;
@@ -1744,13 +1750,15 @@ const ScorecardScreen = () => {
   const unifiedTeeLabel = unifiedScoreboardTeeLabel(scoreData.scoreboard, matchData.tee_name);
 
   const teamBestRows = scoreData.team_best_ball || scoreData.teamBestBall || [];
-  const currentHoleNum = matchData.current_hole;
+  const liveHoleNum = Number(matchData.current_hole) || 1;
+  const viewHoleNum = Math.min(18, Math.max(1, Number(viewHole ?? liveHoleNum) || liveHoleNum));
+  const viewingAwayFromLive = viewHoleNum !== liveHoleNum;
   let teamHolesWon = null;
   if (matchIsTeams && teamsMoneyBet && teamBestRows.length) {
     let w1 = 0;
     let w2 = 0;
     for (const h of holes) {
-      if (h.hole_number >= currentHoleNum) continue;
+      if (h.hole_number >= liveHoleNum) continue;
       const row = teamBestRows.find((r) => Number(r.hole_number) === Number(h.hole_number));
       if (!row || row.team_1 == null || row.team_2 == null) continue;
       if (row.team_1 < row.team_2) w1++;
@@ -1759,15 +1767,15 @@ const ScorecardScreen = () => {
     teamHolesWon = { w1, w2 };
   }
 
-  const currentHoleMeta = holes.find((h) => h.hole_number === currentHoleNum);
-  const currentHolePar = currentHoleMeta?.par ?? '?';
-  const currentHoleYdsRaw = currentHoleMeta?.yardage;
-  const currentHoleYdsNum = Number(currentHoleYdsRaw);
-  const currentHoleYdsLabel =
-    currentHoleYdsRaw != null && currentHoleYdsRaw !== '' && Number.isFinite(currentHoleYdsNum)
-      ? `${currentHoleYdsNum} yds`
+  const viewHoleMeta = holes.find((h) => h.hole_number === viewHoleNum);
+  const viewHolePar = viewHoleMeta?.par ?? '?';
+  const viewHoleYdsRaw = viewHoleMeta?.yardage;
+  const viewHoleYdsNum = Number(viewHoleYdsRaw);
+  const viewHoleYdsLabel =
+    viewHoleYdsRaw != null && viewHoleYdsRaw !== '' && Number.isFinite(viewHoleYdsNum)
+      ? `${viewHoleYdsNum} yds`
       : '— yds';
-  const atFinalHole = currentHoleNum >= 18;
+  const atFinalHole = liveHoleNum >= 18;
 
   const hasScoreForHole = (player, holeNum) => {
     const sc = player.holes?.find((s) => Number(s.hole_number) === Number(holeNum));
@@ -1776,40 +1784,71 @@ const ScorecardScreen = () => {
   const inPlayersThisRound = scoreboardPlayers.filter(playerInOnBetRow);
   const baseAllInHaveScore =
     inPlayersThisRound.length === 0
-    || inPlayersThisRound.every((p) => hasScoreForHole(p, currentHoleNum));
+    || inPlayersThisRound.every((p) => hasScoreForHole(p, liveHoleNum));
   let teamSidesHaveBestBall = true;
   if (matchIsTeams && teamsMoneyBet && inPlayersThisRound.length > 0) {
     const t1In = inPlayersThisRound.filter((p) => Number(p.team_index ?? p.teamIndex) === 1);
     const t2In = inPlayersThisRound.filter((p) => Number(p.team_index ?? p.teamIndex) === 2);
     if (t1In.length > 0 && t2In.length > 0) {
       teamSidesHaveBestBall =
-        t1In.some((p) => hasScoreForHole(p, currentHoleNum))
-        && t2In.some((p) => hasScoreForHole(p, currentHoleNum));
+        t1In.some((p) => hasScoreForHole(p, liveHoleNum))
+        && t2In.some((p) => hasScoreForHole(p, liveHoleNum));
     }
   }
   const allInHaveScoreCurrentHole = baseAllInHaveScore && teamSidesHaveBestBall;
   const canGoNextHole = allInHaveScoreCurrentHole && !atFinalHole;
 
-  const goToHole = async (holeNum) => {
-    if (!matchData || holeNavBusy) return;
+  const browseHole = (holeNum) => {
     const next = Math.min(18, Math.max(1, Number(holeNum)));
-    if (!Number.isInteger(next) || next === Number(matchData.current_hole)) return;
+    if (!Number.isInteger(next)) return;
+    setViewHole(next);
+  };
+
+  const advanceHole = async () => {
+    if (!matchData || !canGoNextHole || holeNavBusy) return;
+    const next = Math.min(liveHoleNum + 1, 18);
     setHoleNavBusy(true);
     try {
       await API.updateMatch(matchData.id, { currentHole: next });
+      setViewHole(next);
       await loadData();
     } catch (e) { console.error(e); }
     setHoleNavBusy(false);
   };
 
-  const advanceHole = async () => {
-    if (!matchData || !canGoNextHole) return;
-    await goToHole(Math.min(matchData.current_hole + 1, 18));
-  };
-
-  const holeStrip = holes.length >= 18
-    ? holes
-    : Array.from({ length: 18 }, (_, i) => holes.find((h) => h.hole_number === i + 1) || { hole_number: i + 1 });
+  const meRow = scoreboardPlayers.find((p) => p.user_id === user?.id);
+  const myViewScore = meRow?.holes?.find((s) => Number(s.hole_number) === Number(viewHoleNum));
+  const myViewStrokes = myViewScore?.strokes != null && Number(myViewScore.strokes) >= 1
+    ? Number(myViewScore.strokes)
+    : null;
+  const myNetByHole = meRow?.net_strokes_by_hole || meRow?.netStrokesByHole || {};
+  const myRecv = myNetByHole[viewHoleNum] || myNetByHole[String(viewHoleNum)] || 0;
+  const myDisplayHoleStrokes =
+    myViewStrokes != null && netScoreView
+      ? Math.max(1, myViewStrokes - Number(myRecv || 0))
+      : myViewStrokes;
+  const myHoleVsPar =
+    myDisplayHoleStrokes != null && viewHolePar !== '?'
+      ? myDisplayHoleStrokes - Number(viewHolePar)
+      : null;
+  const myHoleVsParLabel =
+    myHoleVsPar == null ? null
+      : myHoleVsPar === 0 ? 'E'
+        : myHoleVsPar > 0 ? `+${myHoleVsPar}`
+          : String(myHoleVsPar);
+  const myRoundToPar = meRow
+    ? (netScoreView ? meRow.netToPar : meRow.toPar)
+    : null;
+  const myRoundToParLabel =
+    myRoundToPar == null || myRoundToPar === '' ? '—'
+      : myRoundToPar === 0 ? 'E'
+        : myRoundToPar > 0 ? `+${myRoundToPar}`
+          : String(myRoundToPar);
+  const myRoundTone =
+    myRoundToPar == null || myRoundToPar === '' ? 'text-on-secondary-fixed-variant'
+      : myRoundToPar < 0 ? 'text-fairway'
+        : myRoundToPar === 0 ? 'text-primary'
+          : 'text-error';
 
   const runFinishRound = async () => {
     if (!matchData || finishing) return;
@@ -1874,92 +1913,99 @@ const ScorecardScreen = () => {
     <div className="min-h-[100dvh]">
       <TopHeader title="Play" />
       <main className="page-pad phone-page px-4 space-y-4" style={{ paddingBottom: 'calc(var(--nav-h) + 6.75rem)' }}>
-        <section className="rise-in space-y-3">
-          <div className="flex items-end justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-on-surface-variant truncate">
+        <section className="rise-in score-sheet rounded-xl overflow-hidden">
+          <div className="bg-primary px-3.5 pt-3 pb-3.5 text-white">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-[11px] font-semibold text-white/70 truncate min-w-0">
                 {matchData.course_name}
               </p>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 shrink-0">
+                {matchIsNet && !matchIsStampede && (
+                  <div className="bg-white/15 p-0.5 rounded-lg flex">
+                    <button type="button" onClick={() => setScoringMode('gross')} className={`px-2 py-1 rounded-md text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-secondary-fixed text-on-secondary-fixed' : 'text-white/75'}`}>G</button>
+                    <button type="button" onClick={() => setScoringMode('net')} className={`px-2 py-1 rounded-md text-[11px] font-bold ${scoringMode === 'net' ? 'bg-secondary-fixed text-on-secondary-fixed' : 'text-white/75'}`}>N</button>
+                  </div>
+                )}
                 <button
                   type="button"
-                  aria-label="Previous hole"
-                  disabled={holeNavBusy || currentHoleNum <= 1}
-                  onClick={() => goToHole(currentHoleNum - 1)}
-                  className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-primary disabled:opacity-30 bg-white border border-primary/10"
+                  disabled={finishing}
+                  onClick={onFinishRoundButtonClick}
+                  className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md ${
+                    finishRoundAwaitingConfirm
+                      ? 'bg-secondary-fixed text-on-secondary-fixed'
+                      : 'text-white/75 hover:text-white'
+                  } disabled:opacity-60`}
                 >
-                  <span className="material-symbols-outlined text-[22px]">chevron_left</span>
+                  {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
                 </button>
-                <h2 className="font-headline italic text-[2.75rem] text-primary leading-none tabular-nums min-w-[2.5rem] text-center">
-                  {currentHoleNum}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                type="button"
+                aria-label="Previous hole"
+                disabled={viewHoleNum <= 1}
+                onClick={() => browseHole(viewHoleNum - 1)}
+                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-30 bg-white/12 border border-white/15"
+              >
+                <span className="material-symbols-outlined text-[24px]">chevron_left</span>
+              </button>
+              <div className="min-w-0 flex-1 flex items-end gap-2.5">
+                <h2 className="font-headline italic text-[3rem] leading-none tabular-nums text-secondary-fixed">
+                  {viewHoleNum}
                 </h2>
-                <button
-                  type="button"
-                  aria-label="Next hole"
-                  disabled={holeNavBusy || currentHoleNum >= 18}
-                  onClick={() => goToHole(currentHoleNum + 1)}
-                  className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-primary disabled:opacity-30 bg-white border border-primary/10"
-                >
-                  <span className="material-symbols-outlined text-[22px]">chevron_right</span>
-                </button>
-                <div className="pb-0.5 min-w-0 pl-1">
-                  <p className="text-[15px] font-bold text-primary leading-tight">
-                    Par {currentHolePar}
+                <div className="pb-1.5 min-w-0">
+                  <p className="text-[15px] font-bold text-white leading-tight">
+                    Par {viewHolePar}
                   </p>
-                  <p className="text-[12px] text-on-surface-variant truncate">
-                    {currentHoleYdsLabel}
+                  <p className="text-[12px] text-white/65 truncate">
+                    {viewHoleYdsLabel}
                     {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="flex flex-col items-end gap-2 shrink-0 pb-1">
-              {matchIsNet && !matchIsStampede && (
-                <div className="bg-white border border-primary/10 p-0.5 rounded-lg flex">
-                  <button type="button" onClick={() => setScoringMode('gross')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>G</button>
-                  <button type="button" onClick={() => setScoringMode('net')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'net' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>N</button>
-                </div>
-              )}
               <button
                 type="button"
-                disabled={finishing}
-                onClick={onFinishRoundButtonClick}
-                className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md ${
-                  finishRoundAwaitingConfirm
-                    ? 'bg-secondary-fixed text-on-secondary-fixed'
-                    : 'text-on-surface-variant'
-                } disabled:opacity-60`}
+                aria-label="Next hole"
+                disabled={viewHoleNum >= 18}
+                onClick={() => browseHole(viewHoleNum + 1)}
+                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-30 bg-white/12 border border-white/15"
               >
-                {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
+                <span className="material-symbols-outlined text-[24px]">chevron_right</span>
               </button>
             </div>
+            {viewingAwayFromLive && (
+              <button
+                type="button"
+                onClick={() => browseHole(liveHoleNum)}
+                className="mt-3 w-full flex items-center justify-between gap-2 rounded-lg bg-secondary-fixed px-3 py-2.5 text-on-secondary-fixed"
+              >
+                <span className="text-[12px] font-bold uppercase tracking-wide">Live hole</span>
+                <span className="font-headline italic text-[1.35rem] leading-none tabular-nums">{liveHoleNum}</span>
+              </button>
+            )}
           </div>
-          <div className="flex gap-1 overflow-x-auto hide-scrollbar -mx-0.5 px-0.5" role="navigation" aria-label="Holes">
-            {holeStrip.map((h) => {
-              const n = h.hole_number;
-              const sel = Number(n) === Number(currentHoleNum);
-              const hasAnyScore = scoreboardPlayers.some((p) =>
-                p.holes?.some((s) => Number(s.hole_number) === Number(n) && s.strokes != null && Number(s.strokes) >= 1)
-              );
-              return (
-                <button
-                  key={n}
-                  type="button"
-                  disabled={holeNavBusy}
-                  onClick={() => goToHole(n)}
-                  aria-current={sel ? 'true' : undefined}
-                  className={`shrink-0 w-9 h-9 rounded-lg text-[13px] font-bold tabular-nums transition-colors disabled:opacity-60 ${
-                    sel
-                      ? 'bg-primary text-white'
-                      : hasAnyScore
-                        ? 'bg-primary/10 text-primary'
-                        : 'bg-white border border-primary/10 text-on-surface-variant'
-                  }`}
-                >
-                  {n}
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-2 divide-x divide-primary/10 bg-[#E8C97A]/55">
+            <div className="px-3.5 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-secondary-fixed-variant">This hole</p>
+              <p className={`mt-0.5 text-[1.65rem] font-bold tabular-nums leading-none ${
+                myHoleVsPar == null ? 'text-on-surface-variant'
+                  : myHoleVsPar < 0 ? 'text-fairway'
+                    : myHoleVsPar === 0 ? 'text-primary'
+                      : 'text-error'
+              }`}>
+                {myDisplayHoleStrokes != null ? myDisplayHoleStrokes : '—'}
+                {myHoleVsParLabel != null && (
+                  <span className="ml-1.5 text-[14px] font-semibold">{myHoleVsParLabel}</span>
+                )}
+              </p>
+            </div>
+            <div className="px-3.5 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-secondary-fixed-variant">Round</p>
+              <p className={`mt-0.5 text-[1.65rem] font-bold tabular-nums leading-none ${myRoundTone}`}>
+                {myRoundToParLabel}
+              </p>
+            </div>
           </div>
         </section>
 
@@ -1967,10 +2013,10 @@ const ScorecardScreen = () => {
           <ul className="divide-y divide-primary/8">
             {scoreboardPlayers.map((player) => {
               const isMe = player.user_id === user?.id;
-              const sc = player.holes?.find((s) => Number(s.hole_number) === Number(currentHoleNum));
+              const sc = player.holes?.find((s) => Number(s.hole_number) === Number(viewHoleNum));
               const strokes = sc?.strokes;
               const netByHole = player.net_strokes_by_hole || player.netStrokesByHole || {};
-              const recv = netByHole[currentHoleNum] || netByHole[String(currentHoleNum)] || 0;
+              const recv = netByHole[viewHoleNum] || netByHole[String(viewHoleNum)] || 0;
               const displayStrokes =
                 netScoreView && strokes != null && Number(strokes) >= 1
                   ? Math.max(1, Number(strokes) - Number(recv || 0))
@@ -1987,10 +2033,10 @@ const ScorecardScreen = () => {
                     type="button"
                     onClick={() =>
                       openScoreModal(
-                        currentHoleNum,
+                        viewHoleNum,
                         player.user_id,
                         player.display_name,
-                        currentHolePar === '?' ? 4 : currentHolePar,
+                        viewHolePar === '?' ? 4 : viewHolePar,
                         strokes || null,
                         sc?.junk
                       )
@@ -2032,26 +2078,33 @@ const ScorecardScreen = () => {
                 <thead>
                   <tr className="bg-primary text-[#f8f9fa] font-label text-[10px] uppercase tracking-[0.15em]">
                     <th className="py-3 px-3 font-bold sticky left-0 bg-primary z-20 min-w-[96px] shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Hole</th>
-                    {holes.map(h => (
+                    {holes.map(h => {
+                      const isLive = Number(h.hole_number) === Number(liveHoleNum);
+                      const isView = Number(h.hole_number) === Number(viewHoleNum);
+                      return (
                       <th
                         key={h.hole_number}
-                        className={`py-2 px-1 font-bold text-center min-w-[40px] ${h.hole_number === matchData.current_hole ? 'bg-secondary text-on-secondary-fixed' : ''}`}
+                        className={`py-2 px-1 font-bold text-center min-w-[40px] ${
+                          isView ? 'bg-secondary text-on-secondary-fixed'
+                            : isLive ? 'bg-secondary/50 text-on-secondary-fixed'
+                              : ''
+                        }`}
                       >
                         <button
                           type="button"
-                          disabled={holeNavBusy}
-                          onClick={() => goToHole(h.hole_number)}
+                          onClick={() => browseHole(h.hole_number)}
                           className={`w-full min-h-[2.25rem] rounded-md font-bold tabular-nums ${
-                            h.hole_number === matchData.current_hole
+                            isView || isLive
                               ? 'text-on-secondary-fixed'
                               : 'text-inherit hover:bg-white/10'
                           }`}
-                          aria-label={`Go to hole ${h.hole_number}`}
+                          aria-label={`View hole ${h.hole_number}`}
                         >
                           {h.hole_number}
                         </button>
                       </th>
-                    ))}
+                      );
+                    })}
                     <th className="py-4 px-3 font-bold text-center bg-primary-container min-w-[40px]">OUT</th>
                     <th className="py-4 px-3 font-bold text-center bg-primary-container min-w-[40px]">IN</th>
                     <th className="py-4 px-3 font-bold text-center bg-secondary min-w-[40px]">
