@@ -4200,6 +4200,16 @@ const NewChallengeScreen = () => {
   const [junkSaving, setJunkSaving] = useState(false);
   const [junkAmountDraft, setJunkAmountDraft] = useState('1');
   const [junkAmtSaving, setJunkAmtSaving] = useState(false);
+  const [placing, setPlacing] = useState(false);
+  const [placeError, setPlaceError] = useState(null);
+  const [setupStep, setSetupStep] = useState('type');
+
+  const SIDE_BET_STEPS = [
+    { id: 'type', label: 'Type' },
+    { id: 'stake', label: 'Stake' },
+    { id: 'junk', label: 'Junk' },
+  ];
+  const setupStepIndex = SIDE_BET_STEPS.findIndex((s) => s.id === setupStep);
 
   useEffect(() => {
     (async () => {
@@ -4265,8 +4275,23 @@ const NewChallengeScreen = () => {
     greenie: 'Greenie',
   }[t] || 'Side bet');
 
+  const stakeSummary = () => {
+    if (betType === 'nassau') return `$${amount} per leg × 3`;
+    if (betType === 'stroke_play') return `$${amount} on full round`;
+    return `$${amount} per hole`;
+  };
+
+  const scopeSummary = () => {
+    if (!needsHoleScope()) return null;
+    if (betScope === 'one_hole') return `Hole ${startHole} only`;
+    if (betScope === 'rest_of_round') return `Holes ${startHole}–18`;
+    return 'Every hole';
+  };
+
   const handleSubmit = async () => {
-    if (!matchId) return;
+    if (!matchId || placing) return;
+    setPlacing(true);
+    setPlaceError(null);
     try {
       const body = {
         betType,
@@ -4281,179 +4306,379 @@ const NewChallengeScreen = () => {
       }
       await API.createBet(matchId, body);
       navigate('/scorecard');
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setPlaceError(e.message || 'Could not place bet');
+      setPlacing(false);
+    }
   };
 
   const betTypes = [
-    { id: 'skins', label: 'Skins', icon: 'shield', desc: 'Low gross wins; tie pushes (field−1)×stake to carry' },
-    { id: 'match_play', label: 'Match play', icon: 'handshake', desc: 'Low gross each hole; losers pay winners' },
-    { id: 'stroke_play', label: 'Stroke play', icon: 'golf_course', desc: 'Lowest 18-hole total wins at the end' },
-    { id: 'nassau', label: 'Nassau', icon: 'sports_score', desc: 'Front 9, back 9, and total — three payouts' },
-    { id: 'birdie_bet', label: 'Birdie Bet', icon: 'stars', desc: 'Birdie or better wins the hole pot' },
-    { id: 'par_save', label: 'Par Save', icon: 'security', desc: 'Par or better wins the hole pot' },
-    { id: 'eagle_bet', label: 'Eagle+', icon: 'bolt', desc: 'Eagle or better wins the hole pot' },
-    { id: 'greenie', label: 'Greenie', icon: 'park', desc: 'GIR + par or better; set GIR when saving scores' },
+    { id: 'skins', label: 'Skins', icon: 'shield', desc: 'Low score wins the hole; ties carry' },
+    { id: 'match_play', label: 'Match play', icon: 'handshake', desc: 'Win the hole, opponents pay' },
+    { id: 'stroke_play', label: 'Stroke play', icon: 'golf_course', desc: 'Lowest 18-hole total wins' },
+    { id: 'nassau', label: 'Nassau', icon: 'sports_score', desc: 'Front, back, and overall' },
+    { id: 'birdie_bet', label: 'Birdie', icon: 'stars', desc: 'Birdie or better takes the pot' },
+    { id: 'par_save', label: 'Par save', icon: 'security', desc: 'Par or better takes the pot' },
+    { id: 'eagle_bet', label: 'Eagle+', icon: 'bolt', desc: 'Eagle or better takes the pot' },
+    { id: 'greenie', label: 'Greenie', icon: 'park', desc: 'GIR and par+; mark GIR on score' },
   ];
+
+  const selectedBet = betTypes.find((b) => b.id === betType) || betTypes[0];
+
+  const goNext = () => {
+    if (setupStep === 'type') setSetupStep('stake');
+    else handleSubmit();
+  };
+  const goBack = () => {
+    if (setupStep === 'stake') setSetupStep('type');
+    else if (setupStep === 'junk') setSetupStep('stake');
+    else navigate('/scorecard');
+  };
+
+  const primaryLabel =
+    setupStep === 'type'
+      ? 'Next: Stake'
+      : (placing ? 'Placing…' : 'Place bet');
 
   return (
     <div className="min-h-[100dvh]">
       <TopHeader title="Side bet" backTo="/scorecard" />
-      <main className="page-pad phone-page px-4 space-y-4">
-        <div className="rise-in">
-          <h2 className="text-2xl font-headline italic tracking-tight text-primary">New wager</h2>
-          <p className="text-on-surface-variant text-sm mt-1">
-            {match ? `${match.course_name} · Hole ${match.current_hole}` : 'Propose a wager to the group'}
-          </p>
-        </div>
-        <div className="space-y-5">
-          <div className="space-y-5">
-            {matchId && (
-              <section>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-on-surface-variant">Round options</label>
+      <main className="page-pad phone-page px-4 space-y-4" style={{ paddingBottom: 'calc(var(--nav-h) + 5.75rem)' }}>
+        <section className="rise-in space-y-3">
+          <div>
+            <h2 className="font-headline italic text-[1.65rem] text-primary leading-tight">
+              {setupStep === 'type' && 'Bet type'}
+              {setupStep === 'stake' && 'Stake'}
+              {setupStep === 'junk' && 'Junk'}
+            </h2>
+            <p className="text-[13px] text-on-surface-variant mt-1">
+              {match
+                ? `${match.course_name} · Hole ${match.current_hole || '—'}`
+                : 'Needs an active round'}
+              {setupStep === 'type' && ' — pick the game.'}
+              {setupStep === 'stake' && ' — set amount and coverage.'}
+              {setupStep === 'junk' && ' — optional marks for this round.'}
+            </p>
+          </div>
+          <nav className="grid grid-cols-3 gap-1.5" aria-label="Side bet steps">
+            {SIDE_BET_STEPS.map((s, i) => {
+              const active = s.id === setupStep;
+              const done = i < setupStepIndex;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => {
+                    if (i > setupStepIndex + 1) return;
+                    setSetupStep(s.id);
+                  }}
+                  className={`rounded-lg py-2 px-1 text-center transition-colors ${
+                    active
+                      ? 'bg-primary text-white'
+                      : done
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-white border border-primary/10 text-on-surface-variant'
+                  }`}
+                >
+                  <span className="block text-[10px] font-bold uppercase tracking-wider opacity-80">{i + 1}</span>
+                  <span className="block text-[12px] font-bold mt-0.5">{s.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </section>
+
+        {!matchId && (
+          <section className="score-sheet rounded-xl p-4 rise-in">
+            <p className="text-[14px] font-semibold text-primary">No active round</p>
+            <p className="text-[13px] text-on-surface-variant mt-1">Start a round from Home, then come back to add a side bet.</p>
+            <button
+              type="button"
+              onClick={() => navigate('/new-match')}
+              className="mt-3 w-full py-3 rounded-lg bg-primary text-white text-[14px] font-bold"
+            >
+              New Round
+            </button>
+          </section>
+        )}
+
+        {matchId && setupStep === 'type' && (
+          <section className="score-sheet rounded-xl overflow-hidden rise-in">
+            <ul className="divide-y divide-primary/8">
+              {betTypes.map((bt) => {
+                const sel = betType === bt.id;
+                return (
+                  <li key={bt.id}>
+                    <button
+                      type="button"
+                      onClick={() => setBetType(bt.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hole-chip ${
+                        sel ? 'bg-primary/[0.06]' : 'bg-white'
+                      }`}
+                    >
+                      <span className={`material-symbols-outlined shrink-0 ${sel ? 'text-primary' : 'text-on-surface-variant'}`}>
+                        {bt.icon}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className={`block text-[15px] font-semibold ${sel ? 'text-primary' : 'text-on-surface'}`}>
+                          {bt.label}
+                        </span>
+                        <span className="block text-[12px] text-on-surface-variant leading-snug mt-0.5">
+                          {bt.desc}
+                        </span>
+                      </span>
+                      <span
+                        className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          sel ? 'border-primary bg-primary' : 'border-primary/25'
+                        }`}
+                        aria-hidden
+                      >
+                        {sel && <span className="w-2 h-2 rounded-full bg-white" />}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {matchId && setupStep === 'stake' && (
+          <div className="space-y-4 rise-in">
+            <section className="score-sheet rounded-xl p-4 space-y-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Selected</p>
+                <p className="text-[17px] font-semibold text-primary">{selectedBet.label}</p>
+                <p className="text-[12px] text-on-surface-variant mt-0.5">{selectedBet.desc}</p>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
+                  Amount
+                </label>
+                <div className="flex items-baseline justify-center gap-1 mb-3">
+                  <span className="text-xl font-bold text-primary/40">$</span>
+                  <input
+                    className="score-input bg-transparent border-none text-4xl font-extrabold text-primary w-28 text-center focus:ring-0"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    type="number"
+                    min="1"
+                    inputMode="decimal"
+                  />
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[5, 10, 20, 50].map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setAmount(v)}
+                      className={`py-2.5 rounded-lg text-sm font-bold ${
+                        amount === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                      }`}
+                    >
+                      ${v}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[12px] text-on-surface-variant text-center mt-3">{stakeSummary()}</p>
                 <button
                   type="button"
-                  disabled={junkSaving}
-                  onClick={toggleJunkForMatch}
-                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${isJunkEnabled(match) ? 'border-primary bg-primary/5' : 'border-outline-variant/30 bg-surface-container-low hover:bg-surface-container'}`}
+                  onClick={() => setSetupStep('junk')}
+                  className="mt-3 w-full text-center text-[12px] font-bold text-primary"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-bold text-primary text-sm">Junk &amp; side marks</p>
-                      <p className="text-[11px] text-on-surface-variant mt-1 leading-snug">Turn on to tag Sandy, Sharky, Snake, CTP, and more when entering scores.</p>
-                    </div>
-                    <span className={`shrink-0 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${isJunkEnabled(match) ? 'bg-secondary-fixed text-on-secondary-fixed' : 'bg-surface-container-highest text-on-surface-variant'}`}>
-                      {junkSaving ? '…' : isJunkEnabled(match) ? 'On' : 'Off'}
-                    </span>
-                  </div>
+                  Junk options (optional)
                 </button>
-                <div className="mt-4 p-4 rounded-xl border border-outline-variant/25 bg-surface-container-lowest/90">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Junk value ($ per mark)</label>
-                  <p className="text-[11px] text-on-surface-variant mt-1 mb-3 leading-snug">
-                    Stake per mark for winning junk (par+). Snake &amp; Worm use the same stake: tally builds until holes 9 and 18, then the holder pays (tally × stake) to each opponent.
+              </div>
+            </section>
+
+            {needsHoleScope() && (
+              <section className="score-sheet rounded-xl overflow-hidden">
+                <div className="px-4 pt-3.5 pb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Coverage</p>
+                </div>
+                <ul className="divide-y divide-primary/8">
+                  {[
+                    { id: 'each_hole', label: 'Every hole', sub: 'Settles each hole while active' },
+                    { id: 'one_hole', label: 'One hole', sub: 'Single hole you pick below' },
+                    { id: 'rest_of_round', label: 'Rest of round', sub: 'From a hole through 18' },
+                  ].map((opt) => {
+                    const sel = betScope === opt.id;
+                    return (
+                      <li key={opt.id}>
+                        <button
+                          type="button"
+                          onClick={() => setBetScope(opt.id)}
+                          className={`w-full flex items-center gap-3 px-4 py-3.5 text-left ${
+                            sel ? 'bg-primary/[0.06]' : 'bg-white'
+                          }`}
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className={`block text-[15px] font-semibold ${sel ? 'text-primary' : 'text-on-surface'}`}>
+                              {opt.label}
+                            </span>
+                            <span className="block text-[12px] text-on-surface-variant mt-0.5">{opt.sub}</span>
+                          </span>
+                          <span
+                            className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              sel ? 'border-primary bg-primary' : 'border-primary/25'
+                            }`}
+                            aria-hidden
+                          >
+                            {sel && <span className="w-2 h-2 rounded-full bg-white" />}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {(betScope === 'one_hole' || betScope === 'rest_of_round') && (
+                  <div className="px-4 py-3.5 border-t border-primary/8">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
+                      {betScope === 'one_hole' ? 'Hole' : 'From hole'}
+                    </label>
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {Array.from({ length: 18 }, (_, i) => i + 1).map((h) => {
+                        const sel = startHole === h;
+                        return (
+                          <button
+                            key={h}
+                            type="button"
+                            onClick={() => setStartHole(h)}
+                            className={`py-2 rounded-md text-[13px] font-bold tabular-nums ${
+                              sel
+                                ? 'bg-primary text-white'
+                                : 'bg-surface-container text-on-surface-variant'
+                            }`}
+                          >
+                            {h}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {match?.current_hole != null && (
+                      <p className="text-[11px] text-on-surface-variant mt-2">
+                        Current hole: {match.current_hole}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
+        )}
+
+        {matchId && setupStep === 'junk' && (
+          <div className="space-y-4 rise-in">
+            <section className="score-sheet rounded-xl p-4 space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Ready to place</p>
+              <p className="font-headline italic text-[1.5rem] text-primary leading-tight">{selectedBet.label}</p>
+              <p className="text-[14px] font-semibold text-primary tabular-nums">{stakeSummary()}</p>
+              {scopeSummary() && (
+                <p className="text-[13px] text-on-surface-variant">{scopeSummary()}</p>
+              )}
+            </section>
+
+            <section className="score-sheet rounded-xl overflow-hidden">
+              <button
+                type="button"
+                disabled={junkSaving || !matchId}
+                onClick={toggleJunkForMatch}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left ${
+                  isJunkEnabled(match) ? 'bg-primary/[0.06]' : 'bg-white'
+                }`}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] font-semibold text-primary">Junk &amp; side marks</span>
+                  <span className="block text-[12px] text-on-surface-variant mt-0.5 leading-snug">
+                    Sandy, Sharky, Snake, CTP, and more on the score sheet
+                  </span>
+                </span>
+                <span className={`shrink-0 text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-md ${
+                  isJunkEnabled(match) ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                }`}>
+                  {junkSaving ? '…' : isJunkEnabled(match) ? 'On' : 'Off'}
+                </span>
+              </button>
+              <div className="border-t border-primary/8 px-4 py-3.5 space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1">
+                    $ per mark
+                  </label>
+                  <p className="text-[12px] text-on-surface-variant leading-snug mb-3">
+                    Snake &amp; Worm use the same stake; holder pays at 9 and 18.
                   </p>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <span className="text-primary font-bold">$</span>
                     <input
                       type="number"
                       min="0.25"
                       step="0.25"
-                      className="w-28 border border-outline-variant/40 rounded-lg px-3 py-2 text-sm font-bold bg-surface-container-lowest"
+                      className="w-24 border border-primary/12 rounded-lg px-3 py-2.5 text-[15px] font-bold bg-white text-primary"
                       value={junkAmountDraft}
-                      onChange={e => setJunkAmountDraft(e.target.value)}
+                      onChange={(e) => setJunkAmountDraft(e.target.value)}
                     />
                     <button
                       type="button"
                       disabled={junkAmtSaving}
                       onClick={saveJunkAmount}
-                      className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-on-primary hover:opacity-90 disabled:opacity-50"
+                      className="px-3.5 py-2.5 rounded-lg text-[12px] font-bold bg-primary text-white disabled:opacity-50"
                     >
-                      {junkAmtSaving ? 'Saving…' : 'Save'}
+                      {junkAmtSaving ? '…' : 'Save'}
                     </button>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    {[1, 2, 5].map(v => (
+                    {[1, 2, 5].map((v) => (
                       <button
                         key={v}
                         type="button"
-                        onClick={() => { setJunkAmountDraft(String(v)); }}
-                        className="px-3 py-1 rounded-md text-xs font-bold bg-surface-container text-primary border border-outline-variant/30"
+                        onClick={() => setJunkAmountDraft(String(v))}
+                        className={`px-3 py-1.5 rounded-md text-[12px] font-bold ${
+                          String(junkAmountDraft) === String(v)
+                            ? 'bg-primary text-white'
+                            : 'bg-surface-container text-primary'
+                        }`}
                       >
                         ${v}
                       </button>
                     ))}
                   </div>
                 </div>
-              </section>
-            )}
-            <section>
-              <label className="block text-[10px] font-bold uppercase tracking-widest mb-4">Select Bet Type</label>
-              <div className="grid grid-cols-2 gap-3">
-                {betTypes.map(bt => (
-                  <button key={bt.id} onClick={() => setBetType(bt.id)}
-                    className={`p-5 rounded-xl text-left transition-all ${betType === bt.id ? 'bg-primary text-on-primary' : 'bg-surface-container-low hover:bg-surface-container'}`}>
-                    <span className={`material-symbols-outlined mb-3 ${betType === bt.id ? 'text-secondary-fixed' : 'text-primary'}`}>{bt.icon}</span>
-                    <span className="font-bold text-sm block">{bt.label}</span>
-                    <span className={`text-xs ${betType === bt.id ? 'text-on-primary/60' : 'text-on-surface-variant'}`}>{bt.desc}</span>
-                  </button>
-                ))}
               </div>
             </section>
-            {needsHoleScope() && (
-              <section>
-                <label className="block text-[10px] font-bold uppercase tracking-widest mb-4">Hole coverage</label>
-                <p className="text-xs text-on-surface-variant mb-3">Choose whether this wager runs every hole, on a single hole, or from a starting hole through 18.</p>
-                <div className="space-y-2">
-                  {[
-                    { id: 'each_hole', label: 'Every hole', sub: 'Settles each time you leave a hole (while this bet is active).' },
-                    { id: 'one_hole', label: 'One hole only', sub: 'Runs once on the hole you pick below.' },
-                    { id: 'rest_of_round', label: 'Rest of round', sub: 'Runs from the hole you pick through 18.' },
-                  ].map(opt => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setBetScope(opt.id)}
-                      className={`w-full text-left p-4 rounded-xl border transition-all ${betScope === opt.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-outline-variant/30 bg-surface-container-low hover:bg-surface-container'}`}
-                    >
-                      <span className="font-bold text-sm text-primary block">{opt.label}</span>
-                      <span className="text-[11px] text-on-surface-variant">{opt.sub}</span>
-                    </button>
-                  ))}
-                </div>
-                {(betScope === 'one_hole' || betScope === 'rest_of_round') && (
-                  <div className="mt-4">
-                    <label className="block text-[10px] font-bold uppercase tracking-widest mb-2">Starting hole</label>
-                    <select
-                      className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-3 text-primary font-bold"
-                      value={startHole}
-                      onChange={e => setStartHole(Number(e.target.value))}
-                    >
-                      {Array.from({ length: 18 }, (_, i) => i + 1).map(h => (
-                        <option key={h} value={h}>Hole {h}{match?.current_hole === h ? ' (current)' : ''}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </section>
+
+            {placeError && (
+              <p className="text-[13px] text-error font-semibold px-1">{placeError}</p>
             )}
-            <section>
-              <label className="block text-[10px] font-bold uppercase tracking-widest mb-3">Amount / player</label>
-              <div className="score-sheet rounded-xl p-4 flex flex-col items-center">
-                <div className="flex items-baseline gap-1 mb-3">
-                  <span className="text-xl font-bold text-primary/40">$</span>
-                  <input className="score-input bg-transparent border-none text-4xl font-extrabold text-primary w-28 text-center focus:ring-0"
-                    value={amount} onChange={(e) => setAmount(Number(e.target.value))} type="number" min="1" inputMode="decimal" />
-                </div>
-                <div className="flex gap-2 w-full">
-                  {[5, 10, 20, 50].map((v) => (
-                    <button key={v} type="button" onClick={() => setAmount(v)}
-                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold ${amount === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}>${v}</button>
-                  ))}
-                </div>
-              </div>
-            </section>
-            <div className="score-sheet rounded-xl p-4 bg-secondary-fixed/90">
-              <p className="font-headline text-xl italic text-on-secondary-fixed mb-1">
-                {betTypes.find((b) => b.id === betType)?.label}
-              </p>
-              <p className="text-sm text-on-secondary-fixed-variant mb-4">
-                {betType === 'nassau' ? `$${amount} per leg × 3` :
-                  betType === 'stroke_play' ? `$${amount} on full round` :
-                  `$${amount} per hole`}
-                {needsHoleScope() && (
-                  <span className="block mt-1 text-on-secondary-fixed">
-                    {betScope === 'each_hole' && 'Every hole'}
-                    {betScope === 'one_hole' && `Hole ${startHole} only`}
-                    {betScope === 'rest_of_round' && `Holes ${startHole}–18`}
-                  </span>
-                )}
-              </p>
-              <button type="button" onClick={handleSubmit} className="w-full bg-primary text-white py-4 rounded-lg font-bold active:scale-[0.98] transition-transform">
-                Place bet
-              </button>
-            </div>
+          </div>
+        )}
+      </main>
+
+      {matchId && (
+        <div
+          className="fixed inset-x-0 z-40 border-t border-primary/10 bg-[rgba(243,247,244,0.97)] backdrop-blur-md px-4 pt-2.5"
+          style={{ bottom: 'var(--nav-h)', paddingBottom: '0.65rem' }}
+        >
+          <div className="phone-page mx-auto flex gap-2">
+            <button
+              type="button"
+              onClick={goBack}
+              className="shrink-0 px-4 py-3.5 rounded-lg font-bold text-[14px] bg-white border border-primary/12 text-primary"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              disabled={placing || (setupStep === 'junk' && !matchId)}
+              onClick={goNext}
+              className="flex-1 py-3.5 rounded-lg font-bold text-[14px] uppercase tracking-wide bg-primary text-white active:scale-[0.98] transition-transform disabled:opacity-50"
+            >
+              {primaryLabel}
+            </button>
           </div>
         </div>
-      </main>
+      )}
+
       <BottomNav />
     </div>
   );
