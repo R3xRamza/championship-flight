@@ -1731,6 +1731,61 @@ const ScorecardScreen = () => {
     } catch (e) { console.error(e); }
   };
 
+  // Auto-advance when everyone has scored the live hole (must stay above any early return — Rules of Hooks).
+  useEffect(() => {
+    if (loading || !matchData || !scoreData || scoreModal || finishing || holeNavBusy) return;
+    const live = Number(matchData.current_hole) || 1;
+    if (live >= 18) return;
+    const gameTypeLc = String(matchData.game_type || matchData.gameType || '').toLowerCase();
+    const matchIsTeams = gameTypeLc === 'teams';
+    const teamsMoneyBet = (bets || []).find((b) => b.bet_type === 'teams' && Number(b.amount) > 0);
+    const board = scoreData.scoreboard || [];
+    const hasScore = (player, holeNum) => {
+      const sc = player.holes?.find((s) => Number(s.hole_number) === Number(holeNum));
+      return sc != null && sc.strokes != null && Number(sc.strokes) >= 1;
+    };
+    const inPlayers = board.filter(playerInOnBetRow);
+    const baseAllIn =
+      inPlayers.length === 0
+      || inPlayers.every((p) => hasScore(p, live));
+    let teamOk = true;
+    if (matchIsTeams && teamsMoneyBet && inPlayers.length > 0) {
+      const t1In = inPlayers.filter((p) => Number(p.team_index ?? p.teamIndex) === 1);
+      const t2In = inPlayers.filter((p) => Number(p.team_index ?? p.teamIndex) === 2);
+      if (t1In.length > 0 && t2In.length > 0) {
+        teamOk =
+          t1In.some((p) => hasScore(p, live))
+          && t2In.some((p) => hasScore(p, live));
+      }
+    }
+    if (!(baseAllIn && teamOk)) return;
+    let cancelled = false;
+    (async () => {
+      setHoleNavBusy(true);
+      try {
+        const next = Math.min(live + 1, 18);
+        await API.updateMatch(matchData.id, { currentHole: next });
+        if (cancelled) return;
+        setViewHole(next);
+        await loadData();
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!cancelled) setHoleNavBusy(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [
+    loading,
+    matchData,
+    scoreData,
+    bets,
+    scoreModal,
+    finishing,
+    holeNavBusy,
+    loadData,
+  ]);
+
   if (loading || !matchData || !scoreData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
@@ -1848,12 +1903,6 @@ const ScorecardScreen = () => {
     } catch (e) { console.error(e); }
     setHoleNavBusy(false);
   };
-
-  useEffect(() => {
-    if (loading || !matchData || scoreModal || finishing || holeNavBusy) return;
-    if (!canGoNextHole) return;
-    void advanceHole();
-  }, [canGoNextHole, liveHoleNum, loading, scoreModal, finishing, holeNavBusy, matchData?.id]);
 
   const toggleHideMyRoundScore = () => {
     setHideMyRoundScore((prev) => {
