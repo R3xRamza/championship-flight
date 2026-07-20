@@ -4379,17 +4379,14 @@ const NewChallengeScreen = () => {
   const [match, setMatch] = useState(null);
   const [betScope, setBetScope] = useState('each_hole');
   const [startHole, setStartHole] = useState(1);
-  const [junkSaving, setJunkSaving] = useState(false);
-  const [junkAmountDraft, setJunkAmountDraft] = useState('1');
-  const [junkAmtSaving, setJunkAmtSaving] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState(null);
   const [setupStep, setSetupStep] = useState('type');
 
   const SIDE_BET_STEPS = [
     { id: 'type', label: 'Type' },
+    { id: 'coverage', label: 'Coverage' },
     { id: 'stake', label: 'Stake' },
-    { id: 'junk', label: 'Junk' },
   ];
   const setupStepIndex = SIDE_BET_STEPS.findIndex((s) => s.id === setupStep);
 
@@ -4407,34 +4404,6 @@ const NewChallengeScreen = () => {
       }
     })();
   }, [user?.id]);
-
-  useEffect(() => {
-    if (match && match.junk_amount != null) setJunkAmountDraft(String(Number(match.junk_amount) > 0 ? match.junk_amount : 1));
-  }, [match?.id, match?.junk_amount]);
-
-  const saveJunkAmount = async () => {
-    if (!matchId || junkAmtSaving) return;
-    setJunkAmtSaving(true);
-    try {
-      const v = Math.round(Math.max(0.25, Math.min(500, Number(junkAmountDraft) || 1)) * 100) / 100;
-      const detail = await API.updateMatch(matchId, { junkAmount: v });
-      setMatch(detail);
-    } catch (e) { console.error(e); }
-    setJunkAmtSaving(false);
-  };
-
-  const toggleJunkForMatch = async () => {
-    if (!matchId || junkSaving) return;
-    setJunkSaving(true);
-    try {
-      const next = !isJunkEnabled(match);
-      const payload = { junkEnabled: next };
-      if (next && !(Number(match?.junk_amount) > 0)) payload.junkAmount = 1;
-      const detail = await API.updateMatch(matchId, payload);
-      setMatch(detail);
-    } catch (e) { console.error(e); }
-    setJunkSaving(false);
-  };
 
   useEffect(() => {
     if (match?.current_hole) setStartHole(Math.min(18, Math.max(1, match.current_hole)));
@@ -4464,10 +4433,40 @@ const NewChallengeScreen = () => {
   };
 
   const scopeSummary = () => {
-    if (!needsHoleScope()) return null;
+    if (!needsHoleScope()) {
+      if (betType === 'nassau') return 'Front 9, back 9, and overall';
+      if (betType === 'stroke_play') return 'Full 18-hole total';
+      if (betType === 'skins') return 'Every hole (ties carry)';
+      return 'Full round';
+    }
     if (betScope === 'one_hole') return `Hole ${startHole} only`;
     if (betScope === 'rest_of_round') return `Holes ${startHole}–18`;
     return 'Every hole';
+  };
+
+  const fixedCoverageHint = () => {
+    if (betType === 'nassau') {
+      return {
+        title: 'Front · Back · Total',
+        sub: 'Nassau always settles three ways. Coverage isn’t adjustable.',
+      };
+    }
+    if (betType === 'stroke_play') {
+      return {
+        title: 'Full round',
+        sub: 'Stroke play settles on the lowest 18-hole total.',
+      };
+    }
+    if (betType === 'skins') {
+      return {
+        title: 'Every hole',
+        sub: 'Skins settle each hole; ties push the pot to the next.',
+      };
+    }
+    return {
+      title: 'Full round',
+      sub: 'This bet type uses fixed coverage.',
+    };
   };
 
   const handleSubmit = async () => {
@@ -4509,19 +4508,22 @@ const NewChallengeScreen = () => {
   const selectedBet = betTypes.find((b) => b.id === betType) || betTypes[0];
 
   const goNext = () => {
-    if (setupStep === 'type') setSetupStep('stake');
+    if (setupStep === 'type') setSetupStep('coverage');
+    else if (setupStep === 'coverage') setSetupStep('stake');
     else handleSubmit();
   };
   const goBack = () => {
-    if (setupStep === 'stake') setSetupStep('type');
-    else if (setupStep === 'junk') setSetupStep('stake');
+    if (setupStep === 'coverage') setSetupStep('type');
+    else if (setupStep === 'stake') setSetupStep('coverage');
     else navigate('/scorecard');
   };
 
   const primaryLabel =
     setupStep === 'type'
-      ? 'Next: Stake'
-      : (placing ? 'Placing…' : 'Place bet');
+      ? 'Next: Coverage'
+      : setupStep === 'coverage'
+        ? 'Next: Stake'
+        : (placing ? 'Placing…' : 'Place bet');
 
   return (
     <div className="min-h-[100dvh]">
@@ -4531,16 +4533,16 @@ const NewChallengeScreen = () => {
           <div>
             <h2 className="font-headline italic text-[1.65rem] text-primary leading-tight">
               {setupStep === 'type' && 'Bet type'}
+              {setupStep === 'coverage' && 'Coverage'}
               {setupStep === 'stake' && 'Stake'}
-              {setupStep === 'junk' && 'Junk'}
             </h2>
             <p className="text-[13px] text-on-surface-variant mt-1">
               {match
                 ? `${match.course_name} · Hole ${match.current_hole || '—'}`
                 : 'Needs an active round'}
               {setupStep === 'type' && ' — pick the game.'}
-              {setupStep === 'stake' && ' — set amount and coverage.'}
-              {setupStep === 'junk' && ' — optional marks for this round.'}
+              {setupStep === 'coverage' && ' — when it runs.'}
+              {setupStep === 'stake' && ' — set the amount.'}
             </p>
           </div>
           <nav className="grid grid-cols-3 gap-1.5" aria-label="Side bet steps">
@@ -4626,58 +4628,18 @@ const NewChallengeScreen = () => {
           </section>
         )}
 
-        {matchId && setupStep === 'stake' && (
+        {matchId && setupStep === 'coverage' && (
           <div className="space-y-4 rise-in">
-            <section className="score-sheet rounded-xl p-4 space-y-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Selected</p>
-                <p className="text-[17px] font-semibold text-primary">{selectedBet.label}</p>
-                <p className="text-[12px] text-on-surface-variant mt-0.5">{selectedBet.desc}</p>
-              </div>
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
-                  Amount
-                </label>
-                <div className="flex items-baseline justify-center gap-1 mb-3">
-                  <span className="text-xl font-bold text-primary/40">$</span>
-                  <input
-                    className="score-input bg-transparent border-none text-4xl font-extrabold text-primary w-28 text-center focus:ring-0"
-                    value={amount}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    type="number"
-                    min="1"
-                    inputMode="decimal"
-                  />
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {[5, 10, 20, 50].map((v) => (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => setAmount(v)}
-                      className={`py-2.5 rounded-lg text-sm font-bold ${
-                        amount === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
-                      }`}
-                    >
-                      ${v}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[12px] text-on-surface-variant text-center mt-3">{stakeSummary()}</p>
-                <button
-                  type="button"
-                  onClick={() => setSetupStep('junk')}
-                  className="mt-3 w-full text-center text-[12px] font-bold text-primary"
-                >
-                  Junk options (optional)
-                </button>
-              </div>
+            <section className="score-sheet rounded-xl p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Selected</p>
+              <p className="text-[17px] font-semibold text-primary">{selectedBet.label}</p>
+              <p className="text-[12px] text-on-surface-variant mt-0.5">{selectedBet.desc}</p>
             </section>
 
-            {needsHoleScope() && (
+            {needsHoleScope() ? (
               <section className="score-sheet rounded-xl overflow-hidden">
                 <div className="px-4 pt-3.5 pb-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Coverage</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">When it runs</p>
                 </div>
                 <ul className="divide-y divide-primary/8">
                   {[
@@ -4746,87 +4708,54 @@ const NewChallengeScreen = () => {
                   </div>
                 )}
               </section>
+            ) : (
+              <section className="score-sheet rounded-xl p-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Coverage</p>
+                <p className="text-[17px] font-semibold text-primary">{fixedCoverageHint().title}</p>
+                <p className="text-[13px] text-on-surface-variant mt-1 leading-snug">{fixedCoverageHint().sub}</p>
+              </section>
             )}
           </div>
         )}
 
-        {matchId && setupStep === 'junk' && (
+        {matchId && setupStep === 'stake' && (
           <div className="space-y-4 rise-in">
-            <section className="score-sheet rounded-xl p-4 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Ready to place</p>
-              <p className="font-headline italic text-[1.5rem] text-primary leading-tight">{selectedBet.label}</p>
-              <p className="text-[14px] font-semibold text-primary tabular-nums">{stakeSummary()}</p>
-              {scopeSummary() && (
-                <p className="text-[13px] text-on-surface-variant">{scopeSummary()}</p>
-              )}
+            <section className="score-sheet rounded-xl p-4 space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Summary</p>
+              <p className="text-[17px] font-semibold text-primary">{selectedBet.label}</p>
+              <p className="text-[13px] text-on-surface-variant">{scopeSummary()}</p>
             </section>
 
-            <section className="score-sheet rounded-xl overflow-hidden">
-              <button
-                type="button"
-                disabled={junkSaving || !matchId}
-                onClick={toggleJunkForMatch}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left ${
-                  isJunkEnabled(match) ? 'bg-primary/[0.06]' : 'bg-white'
-                }`}
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-semibold text-primary">Junk &amp; side marks</span>
-                  <span className="block text-[12px] text-on-surface-variant mt-0.5 leading-snug">
-                    Sandy, Sharky, Snake, CTP, and more on the score sheet
-                  </span>
-                </span>
-                <span className={`shrink-0 text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-md ${
-                  isJunkEnabled(match) ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
-                }`}>
-                  {junkSaving ? '…' : isJunkEnabled(match) ? 'On' : 'Off'}
-                </span>
-              </button>
-              <div className="border-t border-primary/8 px-4 py-3.5 space-y-3">
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1">
-                    $ per mark
-                  </label>
-                  <p className="text-[12px] text-on-surface-variant leading-snug mb-3">
-                    Snake &amp; Worm use the same stake; holder pays at 9 and 18.
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-primary font-bold">$</span>
-                    <input
-                      type="number"
-                      min="0.25"
-                      step="0.25"
-                      className="w-24 border border-primary/12 rounded-lg px-3 py-2.5 text-[15px] font-bold bg-white text-primary"
-                      value={junkAmountDraft}
-                      onChange={(e) => setJunkAmountDraft(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      disabled={junkAmtSaving}
-                      onClick={saveJunkAmount}
-                      className="px-3.5 py-2.5 rounded-lg text-[12px] font-bold bg-primary text-white disabled:opacity-50"
-                    >
-                      {junkAmtSaving ? '…' : 'Save'}
-                    </button>
-                  </div>
-                  <div className="flex gap-2 mt-2">
-                    {[1, 2, 5].map((v) => (
-                      <button
-                        key={v}
-                        type="button"
-                        onClick={() => setJunkAmountDraft(String(v))}
-                        className={`px-3 py-1.5 rounded-md text-[12px] font-bold ${
-                          String(junkAmountDraft) === String(v)
-                            ? 'bg-primary text-white'
-                            : 'bg-surface-container text-primary'
-                        }`}
-                      >
-                        ${v}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <section className="score-sheet rounded-xl p-4 space-y-4">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block">
+                Amount
+              </label>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-xl font-bold text-primary/40">$</span>
+                <input
+                  className="score-input bg-transparent border-none text-4xl font-extrabold text-primary w-28 text-center focus:ring-0"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  type="number"
+                  min="1"
+                  inputMode="decimal"
+                />
               </div>
+              <div className="grid grid-cols-4 gap-2">
+                {[5, 10, 20, 50].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setAmount(v)}
+                    className={`py-2.5 rounded-lg text-sm font-bold ${
+                      amount === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                    }`}
+                  >
+                    ${v}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[12px] text-on-surface-variant text-center">{stakeSummary()}</p>
             </section>
 
             {placeError && (
@@ -4851,7 +4780,7 @@ const NewChallengeScreen = () => {
             </button>
             <button
               type="button"
-              disabled={placing || (setupStep === 'junk' && !matchId)}
+              disabled={placing}
               onClick={goNext}
               className="flex-1 py-3.5 rounded-lg font-bold text-[14px] uppercase tracking-wide bg-primary text-white active:scale-[0.98] transition-transform disabled:opacity-50"
             >
