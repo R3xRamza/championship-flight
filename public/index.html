@@ -2891,405 +2891,375 @@ const NewMatchScreen = () => {
   return (
     <div className="bg-surface text-on-surface min-h-[100dvh]">
       <TopHeader title="New Match" backTo="/" />
-      <main className="page-pad phone-page px-4 space-y-4">
-        <section className="rise-in py-1">
-          <h2 className="font-headline italic text-2xl text-primary leading-tight">Set up the round</h2>
-          <p className="text-sm text-on-surface-variant mt-1">Format, stakes, then tee off.</p>
+      <main className="page-pad phone-page px-4 space-y-5" style={{ paddingBottom: 'calc(var(--nav-h) + 5.5rem)' }}>
+        <section className="rise-in">
+          <h2 className="font-headline italic text-[1.65rem] text-primary leading-tight">New round</h2>
+          <p className="text-[13px] text-on-surface-variant mt-1">Pick a format, course, and playing partners.</p>
         </section>
 
-        <div className="space-y-4">
-          {/* Match format */}
-          <div className="score-sheet p-4 rounded-xl flex flex-col gap-3">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Match Format</label>
-            <div className="grid grid-cols-2 gap-2">
-              {gameTypes.map(gt => (
-                <button
-                  key={gt.id}
-                  type="button"
-                  onClick={() => setGameType(gt.id)}
-                  className={`px-3 py-3 rounded-lg text-sm font-bold transition-all ${gameType === gt.id ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
-                >
-                  {gt.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-on-surface-variant leading-snug -mt-1">
-              <span className="font-bold text-on-surface/80">Wager · </span>
-              {selectedGameHelp.wager}
-            </p>
-            {setupIsTeams && !potBetActive && (
-              <p className="text-[11px] text-on-surface-variant leading-snug -mt-1 rounded-lg border border-outline-variant/20 bg-surface-container/50 px-3 py-2">
-                <span className="font-bold text-primary">Teams · </span>
-                Add a <span className="font-bold">wager amount</span> above for best-ball team match play ($/hole). Or leave it at $0 for a casual team scorecard and add side bets from the clubhouse later. On the confirm sheet, tap <span className="font-bold">T1</span> / <span className="font-bold">T2</span> for each golfer.
+        <div className="space-y-5">
+          <section className="score-sheet rounded-xl p-4 space-y-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2.5">Format</p>
+              <div className="grid grid-cols-2 gap-2">
+                {gameTypes.map((gt) => {
+                  const on = gameType === gt.id;
+                  return (
+                    <button
+                      key={gt.id}
+                      type="button"
+                      onClick={() => setGameType(gt.id)}
+                      className={`px-3 py-3 rounded-lg text-[13px] font-bold transition-all active:scale-[0.98] ${
+                        on
+                          ? 'bg-primary text-white'
+                          : 'bg-white border border-primary/12 text-primary'
+                      }`}
+                    >
+                      {gt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[12px] text-on-surface-variant leading-relaxed mt-3">
+                {selectedGameHelp.wager}
               </p>
-            )}
-            {setupIsTeams && potBetActive && (
-              <p className="text-[11px] text-on-surface-variant leading-snug -mt-1 rounded-lg border border-primary/15 bg-primary/[0.06] px-3 py-2">
-                <span className="font-bold text-primary">Teams match play · </span>
-                Wager is live — assign <span className="font-bold">T1</span> / <span className="font-bold">T2</span> on the confirm sheet. Each hole settles on best ball vs best ball.
-              </p>
-            )}
-            <div className="flex items-center gap-3">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Wager Amount ($)</label>
-              <input
-                type="number"
-                min="1"
-                className="w-28 border border-outline-variant/40 rounded-md px-3 py-2 text-sm font-bold bg-surface-container-lowest"
-                value={wagerAmount}
-                onChange={e => setWagerAmount(Number(e.target.value || 0))}
-              />
             </div>
-            <label className="flex items-start gap-3 cursor-pointer mt-1 p-3 rounded-lg border border-outline-variant/25 hover:bg-surface-container/80 transition-colors">
-              <input type="checkbox" checked={includeJunk} onChange={e => setIncludeJunk(e.target.checked)} className="mt-1 w-4 h-4 rounded border-outline-variant text-primary" />
-              <span>
-                <span className="text-sm font-bold text-primary block">Add junk to the round</span>
-                <span className="text-xs text-on-surface-variant leading-snug">Track Sandy, CTP, Snake, etc. Each mark is worth the dollar amount below (par+ to earn; Snake &amp; Worm anytime).</span>
-              </span>
-            </label>
-            {includeJunk && (
-              <div className="mt-2 ml-1 pl-6 border-l-2 border-primary/15">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Junk value ($ per mark)</label>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <span className="text-primary font-bold">$</span>
-                  <input
-                    type="number"
-                    min="0.25"
-                    step="0.25"
-                    className="w-24 border border-outline-variant/40 rounded-md px-2 py-2 text-sm font-bold bg-surface-container-lowest"
-                    value={junkAmount}
-                    onChange={e => setJunkAmount(Math.max(0.25, Number(e.target.value) || 1))}
-                  />
-                  {[1, 2, 5].map(v => (
+
+            <div className="border-t border-primary/8 pt-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant" htmlFor="wager-amt">
+                  Wager ($)
+                </label>
+                <div className="flex items-center gap-2">
+                  {[0, 5, 10, 20].map((v) => (
                     <button
                       key={v}
                       type="button"
-                      onClick={() => setJunkAmount(v)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold ${junkAmount === v ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
+                      onClick={() => setWagerAmount(v)}
+                      className={`min-w-[2.5rem] px-2.5 py-1.5 rounded-md text-[12px] font-bold ${
+                        Number(wagerAmount) === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                      }`}
                     >
-                      ${v}
+                      {v === 0 ? '0' : `$${v}`}
                     </button>
                   ))}
+                  <input
+                    id="wager-amt"
+                    type="number"
+                    min="0"
+                    inputMode="decimal"
+                    className="w-16 border border-primary/15 rounded-md px-2 py-1.5 text-[13px] font-bold bg-white text-center tabular-nums"
+                    value={wagerAmount}
+                    onChange={(e) => setWagerAmount(Number(e.target.value || 0))}
+                  />
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Match name */}
-          <div className="bg-surface-container-low p-6 rounded-xl flex flex-col gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Match Name</label>
-            <input className="bg-transparent border-none p-0 focus:ring-0 text-xl font-headline italic font-semibold text-primary w-full"
-              placeholder="Saturday Skins" value={matchName} onChange={e => setMatchName(e.target.value)} />
-          </div>
+              {setupIsTeams && !potBetActive && (
+                <p className="text-[12px] text-on-surface-variant leading-snug rounded-lg bg-surface-container/80 px-3 py-2">
+                  Set a wager for best-ball team match play, or leave $0 for a casual team card. Assign T1 / T2 on confirm.
+                </p>
+              )}
+              {setupIsTeams && potBetActive && (
+                <p className="text-[12px] text-primary leading-snug rounded-lg bg-primary/[0.06] px-3 py-2">
+                  Teams wager is live — assign T1 / T2 on the confirm sheet.
+                </p>
+              )}
 
-          {/* Course + tee — matching card height and custom dropdowns so long names don&apos;t clip */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            <div className="bg-surface-container-low p-6 rounded-xl flex flex-col gap-2 min-h-0 min-w-0 overflow-visible h-full">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70 shrink-0">The Venue</label>
-              <div className="flex items-center gap-3 min-h-[3.25rem] flex-1 min-w-0">
-                <span className="material-symbols-outlined text-primary shrink-0">location_on</span>
-                <div className="relative flex-1 min-w-0 self-stretch flex" ref={courseDropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => courses.length && setCourseMenuOpen((o) => !o)}
-                    disabled={!courses.length}
-                    className={`relative w-full text-left rounded-xl border-2 px-4 py-3 pr-11 transition-all min-h-[3.25rem] flex flex-col justify-center ${
-                      courseMenuOpen
-                        ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/15'
-                        : 'border-emerald-900/12 bg-gradient-to-br from-emerald-950/[0.06] to-surface-container-lowest hover:border-primary/35 hover:bg-primary/[0.04]'
-                    } ${!courses.length ? 'opacity-50 cursor-not-allowed' : ''}`}
+              <button
+                type="button"
+                onClick={() => setIncludeJunk((v) => !v)}
+                className={`w-full text-left px-3 py-3 rounded-lg border transition-colors ${
+                  includeJunk ? 'border-primary/25 bg-primary/[0.05]' : 'border-primary/10 bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded border ${
+                      includeJunk ? 'bg-primary border-primary text-white' : 'border-outline-variant bg-white'
+                    }`}
                   >
-                    {selectedCourse ? (
-                      <div className="text-base sm:text-lg font-headline italic font-semibold text-primary leading-snug break-words pr-1">
-                        {selectedCourse.name}
-                      </div>
-                    ) : (
-                      <span className="text-on-surface-variant text-sm">Select a course</span>
+                    {includeJunk && (
+                      <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
                     )}
-                    <span
-                      className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary/70 pointer-events-none transition-transform ${courseMenuOpen ? 'rotate-180' : ''}`}
-                    >
-                      expand_more
-                    </span>
-                  </button>
-                  {courseMenuOpen && courses.length > 0 && (
-                    <ul
-                      className="absolute z-[200] left-0 right-0 mt-2 top-full max-h-72 overflow-y-auto rounded-xl border-2 border-emerald-900/15 bg-surface-container-lowest shadow-[0_12px_40px_rgba(1,45,29,0.12)] py-1"
-                      role="listbox"
-                    >
-                      {courses.map((c) => {
-                        const sel = selectedCourse?.id === c.id;
-                        return (
-                          <li key={c.id} role="option" aria-selected={sel}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedCourse(c);
-                                const mt = getTeesSortedByDistance(c?.tee_sets);
-                                setSelectedTee(mt[0] || null);
-                                setCourseMenuOpen(false);
-                                setTeeMenuOpen(false);
-                              }}
-                              className={`w-full text-left px-4 py-3 border-l-[3px] transition-colors ${
-                                sel
-                                  ? 'border-l-secondary bg-secondary-fixed/15'
-                                  : 'border-l-transparent hover:bg-emerald-950/[0.06]'
-                              }`}
-                            >
-                              <div className="text-base font-headline italic font-semibold text-primary leading-snug break-words">
-                                {c.name}
-                              </div>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-bold text-primary">Junk marks</span>
+                    <span className="block text-[12px] text-on-surface-variant mt-0.5">Sandy, CTP, Snake, Worm, etc.</span>
+                  </span>
                 </div>
+              </button>
+              {includeJunk && (
+                <div className="flex items-center justify-between gap-3 pl-1">
+                  <span className="text-[12px] font-semibold text-on-surface-variant">$/mark</span>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 5].map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setJunkAmount(v)}
+                        className={`px-2.5 py-1.5 rounded-md text-[12px] font-bold ${
+                          junkAmount === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                        }`}
+                      >
+                        ${v}
+                      </button>
+                    ))}
+                    <input
+                      type="number"
+                      min="0.25"
+                      step="0.25"
+                      inputMode="decimal"
+                      className="w-16 border border-primary/15 rounded-md px-2 py-1.5 text-[13px] font-bold bg-white text-center tabular-nums"
+                      value={junkAmount}
+                      onChange={(e) => setJunkAmount(Math.max(0.25, Number(e.target.value) || 1))}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="score-sheet rounded-xl p-4 space-y-4">
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2" htmlFor="match-name">
+                Match name
+              </label>
+              <input
+                id="match-name"
+                className="w-full rounded-lg border border-primary/12 bg-white px-3.5 py-3 text-[15px] font-semibold text-primary placeholder:text-on-surface-variant/45 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Saturday Skins"
+                value={matchName}
+                onChange={(e) => setMatchName(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Course</p>
+              <div className="relative" ref={courseDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => courses.length && setCourseMenuOpen((o) => !o)}
+                  disabled={!courses.length}
+                  className={`w-full text-left rounded-lg border px-3.5 py-3 pr-10 transition-colors ${
+                    courseMenuOpen
+                      ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/15'
+                      : 'border-primary/12 bg-white'
+                  } ${!courses.length ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {selectedCourse ? (
+                    <span className="block text-[15px] font-semibold text-primary leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">
+                      {selectedCourse.name}
+                    </span>
+                  ) : (
+                    <span className="text-[14px] text-on-surface-variant">Select a course</span>
+                  )}
+                  <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant transition-transform ${courseMenuOpen ? 'rotate-180' : ''}`}>
+                    expand_more
+                  </span>
+                </button>
+                {courseMenuOpen && courses.length > 0 && (
+                  <ul className="absolute z-[200] left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-primary/12 bg-white shadow-lg py-1" role="listbox">
+                    {courses.map((c) => {
+                      const sel = selectedCourse?.id === c.id;
+                      return (
+                        <li key={c.id} role="option" aria-selected={sel}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCourse(c);
+                              const mt = getTeesSortedByDistance(c?.tee_sets);
+                              setSelectedTee(mt[0] || null);
+                              setCourseMenuOpen(false);
+                              setTeeMenuOpen(false);
+                            }}
+                            className={`w-full text-left px-3.5 py-3 text-[14px] font-semibold leading-snug break-words [overflow-wrap:anywhere] ${
+                              sel ? 'bg-primary text-white' : 'text-primary hover:bg-surface-container-low'
+                            }`}
+                          >
+                            {c.name}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             </div>
 
-            {/* Tee selection — custom dropdown; tee_sets sourced from live courses[] */}
-            <div className="bg-surface-container-low p-6 rounded-xl flex flex-col gap-2 min-h-0 min-w-0 overflow-visible h-full">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70 shrink-0">Tee Box</label>
-              <div className="flex items-center gap-3 min-h-[3.25rem] flex-1 min-w-0">
-                <span className="material-symbols-outlined text-primary shrink-0">sports_golf</span>
-                <div className="relative flex-1 min-w-0 self-stretch flex" ref={teeDropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => teeOptions.length && setTeeMenuOpen((o) => !o)}
-                    disabled={!teeOptions.length}
-                    className={`relative w-full text-left rounded-xl border-2 px-4 py-3 pr-11 transition-all min-h-[3.25rem] flex flex-col justify-center ${
-                      teeMenuOpen
-                        ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/15'
-                        : 'border-emerald-900/12 bg-gradient-to-br from-emerald-950/[0.06] to-surface-container-lowest hover:border-primary/35 hover:bg-primary/[0.04]'
-                    } ${!teeOptions.length ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {selectedTee ? (
-                      <>
-                        <div className="text-base sm:text-lg font-headline italic font-semibold text-primary leading-snug break-words pr-1">
-                          {selectedTee.tee_name} - {selectedTee.total_yards}
-                        </div>
-                        <div className="text-xs text-on-surface-variant mt-1 font-medium tracking-tight">
-                          {formatTeeRatingLine(selectedTee)}
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-on-surface-variant text-sm">No tee boxes for this course</span>
-                    )}
-                    <span
-                      className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary/70 pointer-events-none transition-transform ${teeMenuOpen ? 'rotate-180' : ''}`}
-                    >
-                      expand_more
-                    </span>
-                  </button>
-                  {teeMenuOpen && teeOptions.length > 0 && (
-                    <ul
-                      className="absolute z-[200] mt-2 w-full max-h-72 overflow-y-auto rounded-xl border-2 border-emerald-900/15 bg-surface-container-lowest shadow-[0_12px_40px_rgba(1,45,29,0.12)] py-1"
-                      role="listbox"
-                    >
-                      {teeOptions.map((t) => {
-                        const sel = selectedTee?.id === t.id;
-                        return (
-                          <li key={t.id} role="option" aria-selected={sel}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedTee(t);
-                                setTeeMenuOpen(false);
-                              }}
-                              className={`w-full text-left px-4 py-3 border-l-[3px] transition-colors ${
-                                sel
-                                  ? 'border-l-secondary bg-secondary-fixed/15'
-                                  : 'border-l-transparent hover:bg-emerald-950/[0.06]'
-                              }`}
-                            >
-                              <div className="text-base font-headline italic font-semibold text-primary leading-tight">
-                                {t.tee_name} - {t.total_yards}
-                              </div>
-                              <div className="text-[11px] text-on-surface-variant mt-0.5 font-medium">
-                                {formatTeeRatingLine(t)}
-                              </div>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tee</p>
+              <div className="relative" ref={teeDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => teeOptions.length && setTeeMenuOpen((o) => !o)}
+                  disabled={!teeOptions.length}
+                  className={`w-full text-left rounded-lg border px-3.5 py-3 pr-10 transition-colors ${
+                    teeMenuOpen
+                      ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/15'
+                      : 'border-primary/12 bg-white'
+                  } ${!teeOptions.length ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {selectedTee ? (
+                    <>
+                      <span className="block text-[15px] font-semibold text-primary leading-snug">
+                        {selectedTee.tee_name}
+                        <span className="font-medium text-on-surface-variant"> · {selectedTee.total_yards} yds</span>
+                      </span>
+                      <span className="block text-[12px] text-on-surface-variant mt-0.5 font-medium">
+                        {formatTeeRatingLine(selectedTee)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-[14px] text-on-surface-variant">No tees for this course</span>
                   )}
-                </div>
+                  <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant transition-transform ${teeMenuOpen ? 'rotate-180' : ''}`}>
+                    expand_more
+                  </span>
+                </button>
+                {teeMenuOpen && teeOptions.length > 0 && (
+                  <ul className="absolute z-[200] left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-primary/12 bg-white shadow-lg py-1" role="listbox">
+                    {teeOptions.map((t) => {
+                      const sel = selectedTee?.id === t.id;
+                      return (
+                        <li key={t.id} role="option" aria-selected={sel}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedTee(t);
+                              setTeeMenuOpen(false);
+                            }}
+                            className={`w-full text-left px-3.5 py-3 ${
+                              sel ? 'bg-primary text-white' : 'hover:bg-surface-container-low'
+                            }`}
+                          >
+                            <span className={`block text-[14px] font-semibold ${sel ? 'text-white' : 'text-primary'}`}>
+                              {t.tee_name} · {t.total_yards} yds
+                            </span>
+                            <span className={`block text-[11px] mt-0.5 ${sel ? 'text-white/75' : 'text-on-surface-variant'}`}>
+                              {formatTeeRatingLine(t)}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Players */}
-          <section>
-            <h3 className="text-2xl font-semibold mb-2">Select Players</h3>
-            <p className="text-sm text-on-surface-variant mb-6">Friends appear first. Tap to add them to this match.</p>
+          <section className="space-y-3">
+            <div>
+              <h3 className="font-headline italic text-xl text-primary">Players</h3>
+              <p className="text-[13px] text-on-surface-variant mt-0.5">You’re always in. Tap friends to add them.</p>
+            </div>
+
             {friendUsers.length > 0 && (
-              <>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-3">Friends</p>
-                <div className="flex flex-wrap justify-start gap-x-3 gap-y-5 mb-8">
+              <div className="score-sheet rounded-xl overflow-hidden">
+                <p className="px-3.5 pt-3 text-[10px] font-bold uppercase tracking-widest text-secondary">Friends</p>
+                <ul className="divide-y divide-primary/8">
                   {friendUsers.map((u) => {
                     const sid = String(u.id);
                     const selected = [...selectedPlayers].some((x) => String(x) === sid);
                     return (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={() => {
-                          const next = new Set([...selectedPlayers].map(String));
-                          selected ? next.delete(sid) : next.add(sid);
-                          setSelectedPlayers(next);
-                        }}
-                        className="group flex w-[5.75rem] shrink-0 flex-col items-center text-center px-0.5"
-                      >
-                        <div
-                          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full ${
-                            selected
-                              ? 'ring-2 ring-secondary ring-offset-2 ring-offset-surface'
-                              : 'ring-1 ring-outline-variant/40'
+                      <li key={u.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = new Set([...selectedPlayers].map(String));
+                            selected ? next.delete(sid) : next.add(sid);
+                            setSelectedPlayers(next);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3.5 py-3 text-left transition-colors ${
+                            selected ? 'bg-primary/[0.05]' : 'bg-white'
                           }`}
                         >
-                          {u.avatar_url ? (
-                            <img className="h-full w-full object-cover" src={u.avatar_url} alt="" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-surface-container text-base font-bold text-primary">
-                              {u.display_name[0]}
-                            </div>
-                          )}
-                          {selected && (
-                            <span className="absolute bottom-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-on-secondary shadow-md ring-2 ring-white">
-                              <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                check
-                              </span>
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-2.5 w-full break-words text-center text-[11px] font-bold leading-snug text-primary line-clamp-2">
-                          {u.display_name}
-                        </p>
-                        <p className="mt-0.5 text-[9px] text-on-surface-variant">HCP {u.handicap_index}</p>
-                      </button>
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                            {u.avatar_url ? <img className="h-full w-full object-cover" src={u.avatar_url} alt="" /> : u.display_name[0]}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[15px] font-semibold text-primary truncate">{u.display_name}</p>
+                            <p className="text-[12px] text-on-surface-variant">HCP {u.handicap_index ?? '—'}</p>
+                          </div>
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-full border ${
+                              selected ? 'bg-primary border-primary text-white' : 'border-outline-variant text-transparent'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                          </span>
+                        </button>
+                      </li>
                     );
                   })}
-                </div>
-              </>
+                </ul>
+              </div>
             )}
+
             {otherUsers.length > 0 && (
-              <>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Others</p>
-                <div className="flex flex-wrap justify-start gap-x-3 gap-y-5 mb-4">
+              <div className="score-sheet rounded-xl overflow-hidden">
+                <p className="px-3.5 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Others</p>
+                <ul className="divide-y divide-primary/8">
                   {otherUsers.map((u) => {
                     const sid = String(u.id);
                     const selected = [...selectedPlayers].some((x) => String(x) === sid);
                     return (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={() => {
-                          const next = new Set([...selectedPlayers].map(String));
-                          selected ? next.delete(sid) : next.add(sid);
-                          setSelectedPlayers(next);
-                        }}
-                        className="group flex w-[5.75rem] shrink-0 flex-col items-center text-center px-0.5"
-                      >
-                        <div
-                          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full ${
-                            selected
-                              ? 'ring-2 ring-secondary ring-offset-2 ring-offset-surface'
-                              : 'ring-1 ring-outline-variant/40'
+                      <li key={u.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = new Set([...selectedPlayers].map(String));
+                            selected ? next.delete(sid) : next.add(sid);
+                            setSelectedPlayers(next);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3.5 py-3 text-left ${
+                            selected ? 'bg-primary/[0.05]' : 'bg-white'
                           }`}
                         >
-                          {u.avatar_url ? (
-                            <img className="h-full w-full object-cover" src={u.avatar_url} alt="" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-surface-container text-base font-bold text-primary">
-                              {u.display_name[0]}
-                            </div>
-                          )}
-                          {selected && (
-                            <span className="absolute bottom-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-on-secondary shadow-md ring-2 ring-white">
-                              <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                check
-                              </span>
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-2.5 w-full break-words text-center text-[11px] font-bold leading-snug text-primary line-clamp-2">
-                          {u.display_name}
-                        </p>
-                        <p className="mt-0.5 text-[9px] text-on-surface-variant">HCP {u.handicap_index}</p>
-                      </button>
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                            {u.avatar_url ? <img className="h-full w-full object-cover" src={u.avatar_url} alt="" /> : u.display_name[0]}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[15px] font-semibold text-primary truncate">{u.display_name}</p>
+                            <p className="text-[12px] text-on-surface-variant">HCP {u.handicap_index ?? '—'}</p>
+                          </div>
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-full border ${
+                              selected ? 'bg-primary border-primary text-white' : 'border-outline-variant text-transparent'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                          </span>
+                        </button>
+                      </li>
                     );
                   })}
-                </div>
-              </>
+                </ul>
+              </div>
             )}
 
-            <div className="mt-10 pt-8 border-t border-outline-variant/20">
-              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">Subs</p>
-                  <p className="text-sm text-on-surface-variant max-w-md">
-                    Add placeholder players when someone isn&apos;t on Sandbags yet. They&apos;ll appear on the scorecard for this round only.
-                  </p>
+            <div className="score-sheet rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Subs</p>
+                  <p className="text-[12px] text-on-surface-variant mt-0.5">Guests not on Sandbags yet</p>
                 </div>
                 <button
                   type="button"
                   onClick={openSubModal}
-                  className="shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border-2 border-primary/30 bg-surface-container-lowest text-primary font-bold text-sm hover:bg-primary/5 transition-colors"
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-white text-[12px] font-bold"
                 >
-                  <span className="material-symbols-outlined text-lg">person_add</span>
-                  Add sub
+                  <span className="material-symbols-outlined text-[16px]">person_add</span>
+                  Add
                 </button>
               </div>
               {subs.length === 0 ? (
-                <p className="text-sm text-on-surface-variant/80 italic py-2">No subs added yet.</p>
+                <p className="text-[13px] text-on-surface-variant py-1">None yet.</p>
               ) : (
-                <ul className="flex flex-wrap justify-start gap-x-3 gap-y-5">
+                <ul className="divide-y divide-primary/8 -mx-1">
                   {subs.map((s) => (
-                    <li key={s.clientId} className="flex w-[5.75rem] shrink-0 flex-col items-center px-0.5">
-                      <div className="flex h-16 w-full shrink-0 items-center justify-center">
-                        <div className="relative shrink-0">
-                          {!s.selected && (
-                            <button
-                              type="button"
-                              aria-label={`Remove ${s.name}`}
-                              onClick={() => setSubs((prev) => prev.filter((x) => x.clientId !== s.clientId))}
-                              className="absolute -left-1 -top-1 z-20 flex h-5 w-5 items-center justify-center rounded-full bg-error text-[10px] font-bold leading-none text-white shadow-md ring-2 ring-white hover:brightness-110"
-                            >
-                              ×
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSubs((prev) =>
-                                prev.map((x) =>
-                                  x.clientId === s.clientId ? { ...x, selected: !x.selected } : x
-                                )
-                              );
-                            }}
-                            className="relative block cursor-pointer border-0 bg-transparent p-0 text-inherit"
-                          >
-                            <div
-                              className={`relative flex items-center justify-center overflow-hidden rounded-xl border-2 font-bold ${
-                                s.selected
-                                  ? 'h-16 w-16 text-lg ring-2 ring-secondary ring-offset-2 ring-offset-surface border-secondary/60 bg-secondary-fixed/10 text-primary'
-                                  : 'h-[3.25rem] w-[3.25rem] text-sm border-outline-variant/40 bg-surface-container text-on-surface-variant'
-                              }`}
-                            >
-                              {s.name.trim().charAt(0).toUpperCase() || '?'}
-                              {s.selected && (
-                                <span className="absolute bottom-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-on-secondary shadow-md ring-2 ring-white">
-                                  <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                    check
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        </div>
-                      </div>
+                    <li key={s.clientId} className="flex items-center gap-2 py-2.5 px-1">
                       <button
                         type="button"
                         onClick={() => {
@@ -3299,12 +3269,27 @@ const NewMatchScreen = () => {
                             )
                           );
                         }}
-                        className="mt-2.5 w-full text-center"
+                        className="flex-1 flex items-center gap-3 text-left min-w-0"
                       >
-                        <p className="w-full break-words text-center text-[11px] font-bold leading-snug text-primary line-clamp-2" title={s.name}>
-                          {s.name}
-                        </p>
-                        <p className="mt-0.5 text-[9px] text-on-surface-variant">HCP {s.handicap}</p>
+                        <span
+                          className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold shrink-0 ${
+                            s.selected ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                          }`}
+                        >
+                          {s.name.trim().charAt(0).toUpperCase() || '?'}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[14px] font-semibold text-primary truncate">{s.name}</span>
+                          <span className="block text-[12px] text-on-surface-variant">HCP {s.handicap}</span>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${s.name}`}
+                        onClick={() => setSubs((prev) => prev.filter((x) => x.clientId !== s.clientId))}
+                        className="p-2 text-on-surface-variant/60 hover:text-error"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">close</span>
                       </button>
                     </li>
                   ))}
@@ -3315,7 +3300,7 @@ const NewMatchScreen = () => {
 
           {subModalOpen && (
             <div
-              className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/45"
               role="dialog"
               aria-modal="true"
               aria-labelledby="sub-modal-title"
@@ -3324,18 +3309,18 @@ const NewMatchScreen = () => {
               }}
             >
               <div
-                className="w-full max-w-md bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-xl p-6 space-y-4"
+                className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-xl border border-outline-variant/20 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-4 score-modal-enter"
                 onClick={(e) => e.stopPropagation()}
               >
                 <h4 id="sub-modal-title" className="text-xl font-headline italic text-primary">
                   Add sub
                 </h4>
-                <p className="text-sm text-on-surface-variant">Enter a display name and handicap for this round.</p>
+                <p className="text-[13px] text-on-surface-variant">Name and handicap for this round only.</p>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2">Name</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1.5">Name</label>
                   <input
                     type="text"
-                    className="w-full border border-outline-variant/40 rounded-xl px-4 py-3 text-sm font-semibold bg-surface"
+                    className="w-full border border-primary/12 rounded-lg px-3.5 py-3 text-[14px] font-semibold bg-white"
                     placeholder="e.g. Mike (guest)"
                     value={subDraftName}
                     onChange={(e) => setSubDraftName(e.target.value)}
@@ -3343,7 +3328,7 @@ const NewMatchScreen = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1.5">
                     Handicap index
                   </label>
                   <input
@@ -3351,16 +3336,17 @@ const NewMatchScreen = () => {
                     step="0.1"
                     min="-10"
                     max="54"
-                    className="w-full border border-outline-variant/40 rounded-xl px-4 py-3 text-sm font-bold bg-surface"
+                    inputMode="decimal"
+                    className="w-full border border-primary/12 rounded-lg px-3.5 py-3 text-[14px] font-bold bg-white"
                     value={subDraftHcp}
                     onChange={(e) => setSubDraftHcp(e.target.value)}
                   />
                 </div>
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={() => setSubModalOpen(false)}
-                    className="flex-1 py-3 rounded-xl border-2 border-outline-variant/30 font-bold text-sm text-on-surface-variant"
+                    className="flex-1 py-3.5 rounded-lg border border-outline-variant/30 font-bold text-[13px] text-on-surface-variant"
                   >
                     Cancel
                   </button>
@@ -3368,25 +3354,32 @@ const NewMatchScreen = () => {
                     type="button"
                     onClick={confirmAddSub}
                     disabled={!subDraftName.trim()}
-                    className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold text-sm disabled:opacity-40"
+                    className="flex-1 py-3.5 rounded-lg bg-primary text-on-primary font-bold text-[13px] disabled:opacity-40"
                   >
-                    Add to list
+                    Add
                   </button>
                 </div>
               </div>
             </div>
           )}
+        </div>
+      </main>
 
+      <div
+        className="fixed inset-x-0 z-40 border-t border-primary/8 bg-[rgba(243,247,244,0.96)] backdrop-blur-md px-4 pt-3"
+        style={{ bottom: 'var(--nav-h)', paddingBottom: '0.75rem' }}
+      >
+        <div className="phone-page mx-auto">
           <button
             type="button"
             onClick={openStartConfirm}
-            className="w-full bg-secondary-fixed text-on-secondary-fixed py-5 rounded-xl font-body font-black text-lg tracking-tight shadow-xl hover:bg-secondary-fixed-dim transition-all flex items-center justify-center gap-3"
+            className="w-full bg-primary text-white py-4 rounded-lg font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
           >
-            <span className="material-symbols-outlined">flag</span>
-            Head to the First Tee
+            Continue
+            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
         </div>
-      </main>
+      </div>
 
       {startConfirmOpen && selectedCourse && (
         <div
