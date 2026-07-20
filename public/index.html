@@ -2606,12 +2606,23 @@ const NewMatchScreen = () => {
   const [confirmScoringMode, setConfirmScoringMode] = useState('gross');
   const [rosterDraft, setRosterDraft] = useState([]);
   const [submittingMatch, setSubmittingMatch] = useState(false);
+  const SETUP_STEPS = [
+    { id: 'course', label: 'Course' },
+    { id: 'players', label: 'Players' },
+    { id: 'game', label: 'Game' },
+  ];
+  const [setupStep, setSetupStep] = useState('course');
   const { user } = useAuth();
 
   const newSubClientId = () =>
     (typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : `sub-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
+
+  useEffect(() => {
+    if (location.pathname !== '/new-match') return;
+    setSetupStep('course');
+  }, [location.pathname, location.key]);
 
   useEffect(() => {
     if (location.pathname !== '/new-match') return;
@@ -2887,416 +2898,482 @@ const NewMatchScreen = () => {
 
   const friendUsers = users.filter((u) => u.is_friend);
   const otherUsers = users.filter((u) => !u.is_friend);
+  const setupStepIndex = SETUP_STEPS.findIndex((s) => s.id === setupStep);
+  const setupStepMeta = SETUP_STEPS[setupStepIndex] || SETUP_STEPS[0];
+  const canAdvanceCourse = !!selectedCourse && !!selectedTee;
+  const goSetupNext = () => {
+    if (setupStep === 'course') {
+      if (!canAdvanceCourse) return;
+      setSetupStep('players');
+      return;
+    }
+    if (setupStep === 'players') {
+      setSetupStep('game');
+      return;
+    }
+    openStartConfirm();
+  };
+  const goSetupBack = () => {
+    if (setupStep === 'players') setSetupStep('course');
+    else if (setupStep === 'game') setSetupStep('players');
+    else navigate('/');
+  };
 
   return (
     <div className="bg-surface text-on-surface min-h-[100dvh]">
-      <TopHeader title="New Match" backTo="/" />
-      <main className="page-pad phone-page px-4 space-y-5" style={{ paddingBottom: 'calc(var(--nav-h) + 5.5rem)' }}>
-        <section className="rise-in">
-          <h2 className="font-headline italic text-[1.65rem] text-primary leading-tight">New round</h2>
-          <p className="text-[13px] text-on-surface-variant mt-1">Pick a format, course, and playing partners.</p>
+      <TopHeader title="New Round" backTo="/" />
+      <main className="page-pad phone-page px-4 space-y-4" style={{ paddingBottom: 'calc(var(--nav-h) + 5.5rem)' }}>
+        <section className="rise-in space-y-3">
+          <div>
+            <h2 className="font-headline italic text-[1.65rem] text-primary leading-tight">
+              {setupStep === 'course' && 'Course'}
+              {setupStep === 'players' && 'Players'}
+              {setupStep === 'game' && 'Game'}
+            </h2>
+            <p className="text-[13px] text-on-surface-variant mt-1">
+              {setupStep === 'course' && 'Name the round, pick a course and tee.'}
+              {setupStep === 'players' && 'You’re always in. Add partners and guests.'}
+              {setupStep === 'game' && 'Choose the format, wager, and junk.'}
+            </p>
+          </div>
+          <nav className="grid grid-cols-3 gap-1.5" aria-label="Setup steps">
+            {SETUP_STEPS.map((s, i) => {
+              const active = s.id === setupStep;
+              const done = i < setupStepIndex;
+              const reachable = i <= setupStepIndex || (canAdvanceCourse && i <= setupStepIndex + 1);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={!reachable && !done && !active}
+                  onClick={() => {
+                    if (i > 0 && !canAdvanceCourse) return;
+                    if (i > setupStepIndex + 1) return;
+                    setSetupStep(s.id);
+                  }}
+                  className={`rounded-lg py-2 px-1 text-center transition-colors disabled:opacity-40 ${
+                    active
+                      ? 'bg-primary text-white'
+                      : done
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-white border border-primary/10 text-on-surface-variant'
+                  }`}
+                >
+                  <span className="block text-[10px] font-bold uppercase tracking-wider opacity-80">{i + 1}</span>
+                  <span className="block text-[12px] font-bold mt-0.5">{s.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </section>
 
         <div className="space-y-5">
-          <section className="score-sheet rounded-xl p-4 space-y-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2.5">Format</p>
-              <div className="grid grid-cols-2 gap-2">
-                {gameTypes.map((gt) => {
-                  const on = gameType === gt.id;
-                  return (
-                    <button
-                      key={gt.id}
-                      type="button"
-                      onClick={() => setGameType(gt.id)}
-                      className={`px-3 py-3 rounded-lg text-[13px] font-bold transition-all active:scale-[0.98] ${
-                        on
-                          ? 'bg-primary text-white'
-                          : 'bg-white border border-primary/12 text-primary'
-                      }`}
-                    >
-                      {gt.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-[12px] text-on-surface-variant leading-relaxed mt-3">
-                {selectedGameHelp.wager}
-              </p>
-            </div>
-
-            <div className="border-t border-primary/8 pt-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant" htmlFor="wager-amt">
-                  Wager ($)
+          {setupStep === 'course' && (
+            <section className="score-sheet rounded-xl p-4 space-y-4 rise-in">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2" htmlFor="match-name">
+                  Match name
                 </label>
-                <div className="flex items-center gap-2">
-                  {[0, 5, 10, 20].map((v) => (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => setWagerAmount(v)}
-                      className={`min-w-[2.5rem] px-2.5 py-1.5 rounded-md text-[12px] font-bold ${
-                        Number(wagerAmount) === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
-                      }`}
-                    >
-                      {v === 0 ? '0' : `$${v}`}
-                    </button>
-                  ))}
-                  <input
-                    id="wager-amt"
-                    type="number"
-                    min="0"
-                    inputMode="decimal"
-                    className="w-16 border border-primary/15 rounded-md px-2 py-1.5 text-[13px] font-bold bg-white text-center tabular-nums"
-                    value={wagerAmount}
-                    onChange={(e) => setWagerAmount(Number(e.target.value || 0))}
-                  />
+                <input
+                  id="match-name"
+                  className="w-full rounded-lg border border-primary/12 bg-white px-3.5 py-3 text-[15px] font-semibold text-primary placeholder:text-on-surface-variant/45 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Saturday Skins"
+                  value={matchName}
+                  onChange={(e) => setMatchName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Course</p>
+                <div className="relative" ref={courseDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => courses.length && setCourseMenuOpen((o) => !o)}
+                    disabled={!courses.length}
+                    className={`w-full text-left rounded-lg border px-3.5 py-3 pr-10 transition-colors ${
+                      courseMenuOpen
+                        ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/15'
+                        : 'border-primary/12 bg-white'
+                    } ${!courses.length ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {selectedCourse ? (
+                      <span className="block text-[15px] font-semibold text-primary leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">
+                        {selectedCourse.name}
+                      </span>
+                    ) : (
+                      <span className="text-[14px] text-on-surface-variant">Select a course</span>
+                    )}
+                    <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant transition-transform ${courseMenuOpen ? 'rotate-180' : ''}`}>
+                      expand_more
+                    </span>
+                  </button>
+                  {courseMenuOpen && courses.length > 0 && (
+                    <ul className="absolute z-[200] left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-primary/12 bg-white shadow-lg py-1" role="listbox">
+                      {courses.map((c) => {
+                        const sel = selectedCourse?.id === c.id;
+                        return (
+                          <li key={c.id} role="option" aria-selected={sel}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedCourse(c);
+                                const mt = getTeesSortedByDistance(c?.tee_sets);
+                                setSelectedTee(mt[0] || null);
+                                setCourseMenuOpen(false);
+                                setTeeMenuOpen(false);
+                              }}
+                              className={`w-full text-left px-3.5 py-3 text-[14px] font-semibold leading-snug break-words [overflow-wrap:anywhere] ${
+                                sel ? 'bg-primary text-white' : 'text-primary hover:bg-surface-container-low'
+                              }`}
+                            >
+                              {c.name}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
               </div>
 
-              {setupIsTeams && !potBetActive && (
-                <p className="text-[12px] text-on-surface-variant leading-snug rounded-lg bg-surface-container/80 px-3 py-2">
-                  Set a wager for best-ball team match play, or leave $0 for a casual team card. Assign T1 / T2 on confirm.
-                </p>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tee</p>
+                <div className="relative" ref={teeDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => teeOptions.length && setTeeMenuOpen((o) => !o)}
+                    disabled={!teeOptions.length}
+                    className={`w-full text-left rounded-lg border px-3.5 py-3 pr-10 transition-colors ${
+                      teeMenuOpen
+                        ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/15'
+                        : 'border-primary/12 bg-white'
+                    } ${!teeOptions.length ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {selectedTee ? (
+                      <>
+                        <span className="block text-[15px] font-semibold text-primary leading-snug">
+                          {selectedTee.tee_name}
+                          <span className="font-medium text-on-surface-variant"> · {selectedTee.total_yards} yds</span>
+                        </span>
+                        <span className="block text-[12px] text-on-surface-variant mt-0.5 font-medium">
+                          {formatTeeRatingLine(selectedTee)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-[14px] text-on-surface-variant">No tees for this course</span>
+                    )}
+                    <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant transition-transform ${teeMenuOpen ? 'rotate-180' : ''}`}>
+                      expand_more
+                    </span>
+                  </button>
+                  {teeMenuOpen && teeOptions.length > 0 && (
+                    <ul className="absolute z-[200] left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-primary/12 bg-white shadow-lg py-1" role="listbox">
+                      {teeOptions.map((t) => {
+                        const sel = selectedTee?.id === t.id;
+                        return (
+                          <li key={t.id} role="option" aria-selected={sel}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedTee(t);
+                                setTeeMenuOpen(false);
+                              }}
+                              className={`w-full text-left px-3.5 py-3 ${
+                                sel ? 'bg-primary text-white' : 'hover:bg-surface-container-low'
+                              }`}
+                            >
+                              <span className={`block text-[14px] font-semibold ${sel ? 'text-white' : 'text-primary'}`}>
+                                {t.tee_name} · {t.total_yards} yds
+                              </span>
+                              <span className={`block text-[11px] mt-0.5 ${sel ? 'text-white/75' : 'text-on-surface-variant'}`}>
+                                {formatTeeRatingLine(t)}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {setupStep === 'players' && (
+            <section className="space-y-3 rise-in">
+              {friendUsers.length > 0 && (
+                <div className="score-sheet rounded-xl overflow-hidden">
+                  <p className="px-3.5 pt-3 text-[10px] font-bold uppercase tracking-widest text-secondary">Friends</p>
+                  <ul className="divide-y divide-primary/8">
+                    {friendUsers.map((u) => {
+                      const sid = String(u.id);
+                      const selected = [...selectedPlayers].some((x) => String(x) === sid);
+                      return (
+                        <li key={u.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = new Set([...selectedPlayers].map(String));
+                              selected ? next.delete(sid) : next.add(sid);
+                              setSelectedPlayers(next);
+                            }}
+                            className={`w-full flex items-center gap-3 px-3.5 py-3 text-left transition-colors ${
+                              selected ? 'bg-primary/[0.05]' : 'bg-white'
+                            }`}
+                          >
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                              {u.avatar_url ? <img className="h-full w-full object-cover" src={u.avatar_url} alt="" /> : u.display_name[0]}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[15px] font-semibold text-primary truncate">{u.display_name}</p>
+                              <p className="text-[12px] text-on-surface-variant">HCP {u.handicap_index ?? '—'}</p>
+                            </div>
+                            <span
+                              className={`flex h-6 w-6 items-center justify-center rounded-full border ${
+                                selected ? 'bg-primary border-primary text-white' : 'border-outline-variant text-transparent'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               )}
-              {setupIsTeams && potBetActive && (
-                <p className="text-[12px] text-primary leading-snug rounded-lg bg-primary/[0.06] px-3 py-2">
-                  Teams wager is live — assign T1 / T2 on the confirm sheet.
+
+              {otherUsers.length > 0 && (
+                <div className="score-sheet rounded-xl overflow-hidden">
+                  <p className="px-3.5 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Others</p>
+                  <ul className="divide-y divide-primary/8">
+                    {otherUsers.map((u) => {
+                      const sid = String(u.id);
+                      const selected = [...selectedPlayers].some((x) => String(x) === sid);
+                      return (
+                        <li key={u.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = new Set([...selectedPlayers].map(String));
+                              selected ? next.delete(sid) : next.add(sid);
+                              setSelectedPlayers(next);
+                            }}
+                            className={`w-full flex items-center gap-3 px-3.5 py-3 text-left ${
+                              selected ? 'bg-primary/[0.05]' : 'bg-white'
+                            }`}
+                          >
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                              {u.avatar_url ? <img className="h-full w-full object-cover" src={u.avatar_url} alt="" /> : u.display_name[0]}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[15px] font-semibold text-primary truncate">{u.display_name}</p>
+                              <p className="text-[12px] text-on-surface-variant">HCP {u.handicap_index ?? '—'}</p>
+                            </div>
+                            <span
+                              className={`flex h-6 w-6 items-center justify-center rounded-full border ${
+                                selected ? 'bg-primary border-primary text-white' : 'border-outline-variant text-transparent'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {friendUsers.length === 0 && otherUsers.length === 0 && (
+                <p className="text-[13px] text-on-surface-variant score-sheet rounded-xl p-4">
+                  No other players yet. Add a sub below, or continue solo.
                 </p>
               )}
 
-              <button
-                type="button"
-                onClick={() => setIncludeJunk((v) => !v)}
-                className={`w-full text-left px-3 py-3 rounded-lg border transition-colors ${
-                  includeJunk ? 'border-primary/25 bg-primary/[0.05]' : 'border-primary/10 bg-white'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded border ${
-                      includeJunk ? 'bg-primary border-primary text-white' : 'border-outline-variant bg-white'
-                    }`}
+              <div className="score-sheet rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Subs</p>
+                    <p className="text-[12px] text-on-surface-variant mt-0.5">Guests not on Sandbags yet</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openSubModal}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-white text-[12px] font-bold"
                   >
-                    {includeJunk && (
-                      <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
-                    )}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] font-bold text-primary">Junk marks</span>
-                    <span className="block text-[12px] text-on-surface-variant mt-0.5">Sandy, CTP, Snake, Worm, etc.</span>
-                  </span>
+                    <span className="material-symbols-outlined text-[16px]">person_add</span>
+                    Add
+                  </button>
                 </div>
-              </button>
-              {includeJunk && (
-                <div className="flex items-center justify-between gap-3 pl-1">
-                  <span className="text-[12px] font-semibold text-on-surface-variant">$/mark</span>
+                {subs.length === 0 ? (
+                  <p className="text-[13px] text-on-surface-variant py-1">None yet.</p>
+                ) : (
+                  <ul className="divide-y divide-primary/8 -mx-1">
+                    {subs.map((s) => (
+                      <li key={s.clientId} className="flex items-center gap-2 py-2.5 px-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSubs((prev) =>
+                              prev.map((x) =>
+                                x.clientId === s.clientId ? { ...x, selected: !x.selected } : x
+                              )
+                            );
+                          }}
+                          className="flex-1 flex items-center gap-3 text-left min-w-0"
+                        >
+                          <span
+                            className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold shrink-0 ${
+                              s.selected ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                            }`}
+                          >
+                            {s.name.trim().charAt(0).toUpperCase() || '?'}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[14px] font-semibold text-primary truncate">{s.name}</span>
+                            <span className="block text-[12px] text-on-surface-variant">HCP {s.handicap}</span>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Remove ${s.name}`}
+                          onClick={() => setSubs((prev) => prev.filter((x) => x.clientId !== s.clientId))}
+                          className="p-2 text-on-surface-variant/60 hover:text-error"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">close</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </section>
+          )}
+
+          {setupStep === 'game' && (
+            <section className="score-sheet rounded-xl p-4 space-y-4 rise-in">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2.5">Format</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {gameTypes.map((gt) => {
+                    const on = gameType === gt.id;
+                    return (
+                      <button
+                        key={gt.id}
+                        type="button"
+                        onClick={() => setGameType(gt.id)}
+                        className={`px-3 py-3 rounded-lg text-[13px] font-bold transition-all active:scale-[0.98] ${
+                          on
+                            ? 'bg-primary text-white'
+                            : 'bg-white border border-primary/12 text-primary'
+                        }`}
+                      >
+                        {gt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[12px] text-on-surface-variant leading-relaxed mt-3">
+                  {selectedGameHelp.wager}
+                </p>
+              </div>
+
+              <div className="border-t border-primary/8 pt-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant" htmlFor="wager-amt">
+                    Wager ($)
+                  </label>
                   <div className="flex items-center gap-2">
-                    {[1, 2, 5].map((v) => (
+                    {[0, 5, 10, 20].map((v) => (
                       <button
                         key={v}
                         type="button"
-                        onClick={() => setJunkAmount(v)}
-                        className={`px-2.5 py-1.5 rounded-md text-[12px] font-bold ${
-                          junkAmount === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                        onClick={() => setWagerAmount(v)}
+                        className={`min-w-[2.5rem] px-2.5 py-1.5 rounded-md text-[12px] font-bold ${
+                          Number(wagerAmount) === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
                         }`}
                       >
-                        ${v}
+                        {v === 0 ? '0' : `$${v}`}
                       </button>
                     ))}
                     <input
+                      id="wager-amt"
                       type="number"
-                      min="0.25"
-                      step="0.25"
+                      min="0"
                       inputMode="decimal"
                       className="w-16 border border-primary/15 rounded-md px-2 py-1.5 text-[13px] font-bold bg-white text-center tabular-nums"
-                      value={junkAmount}
-                      onChange={(e) => setJunkAmount(Math.max(0.25, Number(e.target.value) || 1))}
+                      value={wagerAmount}
+                      onChange={(e) => setWagerAmount(Number(e.target.value || 0))}
                     />
                   </div>
                 </div>
-              )}
-            </div>
-          </section>
 
-          <section className="score-sheet rounded-xl p-4 space-y-4">
-            <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-2" htmlFor="match-name">
-                Match name
-              </label>
-              <input
-                id="match-name"
-                className="w-full rounded-lg border border-primary/12 bg-white px-3.5 py-3 text-[15px] font-semibold text-primary placeholder:text-on-surface-variant/45 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="Saturday Skins"
-                value={matchName}
-                onChange={(e) => setMatchName(e.target.value)}
-              />
-            </div>
+                {setupIsTeams && !potBetActive && (
+                  <p className="text-[12px] text-on-surface-variant leading-snug rounded-lg bg-surface-container/80 px-3 py-2">
+                    Set a wager for best-ball team match play, or leave $0 for a casual team card. Assign T1 / T2 on confirm.
+                  </p>
+                )}
+                {setupIsTeams && potBetActive && (
+                  <p className="text-[12px] text-primary leading-snug rounded-lg bg-primary/[0.06] px-3 py-2">
+                    Teams wager is live — assign T1 / T2 on the confirm sheet.
+                  </p>
+                )}
 
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Course</p>
-              <div className="relative" ref={courseDropdownRef}>
                 <button
                   type="button"
-                  onClick={() => courses.length && setCourseMenuOpen((o) => !o)}
-                  disabled={!courses.length}
-                  className={`w-full text-left rounded-lg border px-3.5 py-3 pr-10 transition-colors ${
-                    courseMenuOpen
-                      ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/15'
-                      : 'border-primary/12 bg-white'
-                  } ${!courses.length ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => setIncludeJunk((v) => !v)}
+                  className={`w-full text-left px-3 py-3 rounded-lg border transition-colors ${
+                    includeJunk ? 'border-primary/25 bg-primary/[0.05]' : 'border-primary/10 bg-white'
+                  }`}
                 >
-                  {selectedCourse ? (
-                    <span className="block text-[15px] font-semibold text-primary leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">
-                      {selectedCourse.name}
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded border ${
+                        includeJunk ? 'bg-primary border-primary text-white' : 'border-outline-variant bg-white'
+                      }`}
+                    >
+                      {includeJunk && (
+                        <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                      )}
                     </span>
-                  ) : (
-                    <span className="text-[14px] text-on-surface-variant">Select a course</span>
-                  )}
-                  <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant transition-transform ${courseMenuOpen ? 'rotate-180' : ''}`}>
-                    expand_more
-                  </span>
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-bold text-primary">Junk marks</span>
+                      <span className="block text-[12px] text-on-surface-variant mt-0.5">Sandy, CTP, Snake, Worm, etc.</span>
+                    </span>
+                  </div>
                 </button>
-                {courseMenuOpen && courses.length > 0 && (
-                  <ul className="absolute z-[200] left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-primary/12 bg-white shadow-lg py-1" role="listbox">
-                    {courses.map((c) => {
-                      const sel = selectedCourse?.id === c.id;
-                      return (
-                        <li key={c.id} role="option" aria-selected={sel}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCourse(c);
-                              const mt = getTeesSortedByDistance(c?.tee_sets);
-                              setSelectedTee(mt[0] || null);
-                              setCourseMenuOpen(false);
-                              setTeeMenuOpen(false);
-                            }}
-                            className={`w-full text-left px-3.5 py-3 text-[14px] font-semibold leading-snug break-words [overflow-wrap:anywhere] ${
-                              sel ? 'bg-primary text-white' : 'text-primary hover:bg-surface-container-low'
-                            }`}
-                          >
-                            {c.name}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                {includeJunk && (
+                  <div className="flex items-center justify-between gap-3 pl-1">
+                    <span className="text-[12px] font-semibold text-on-surface-variant">$/mark</span>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 5].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setJunkAmount(v)}
+                          className={`px-2.5 py-1.5 rounded-md text-[12px] font-bold ${
+                            junkAmount === v ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                          }`}
+                        >
+                          ${v}
+                        </button>
+                      ))}
+                      <input
+                        type="number"
+                        min="0.25"
+                        step="0.25"
+                        inputMode="decimal"
+                        className="w-16 border border-primary/15 rounded-md px-2 py-1.5 text-[13px] font-bold bg-white text-center tabular-nums"
+                        value={junkAmount}
+                        onChange={(e) => setJunkAmount(Math.max(0.25, Number(e.target.value) || 1))}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
-
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tee</p>
-              <div className="relative" ref={teeDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => teeOptions.length && setTeeMenuOpen((o) => !o)}
-                  disabled={!teeOptions.length}
-                  className={`w-full text-left rounded-lg border px-3.5 py-3 pr-10 transition-colors ${
-                    teeMenuOpen
-                      ? 'border-primary bg-primary/[0.04] ring-2 ring-primary/15'
-                      : 'border-primary/12 bg-white'
-                  } ${!teeOptions.length ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {selectedTee ? (
-                    <>
-                      <span className="block text-[15px] font-semibold text-primary leading-snug">
-                        {selectedTee.tee_name}
-                        <span className="font-medium text-on-surface-variant"> · {selectedTee.total_yards} yds</span>
-                      </span>
-                      <span className="block text-[12px] text-on-surface-variant mt-0.5 font-medium">
-                        {formatTeeRatingLine(selectedTee)}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-[14px] text-on-surface-variant">No tees for this course</span>
-                  )}
-                  <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant transition-transform ${teeMenuOpen ? 'rotate-180' : ''}`}>
-                    expand_more
-                  </span>
-                </button>
-                {teeMenuOpen && teeOptions.length > 0 && (
-                  <ul className="absolute z-[200] left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-primary/12 bg-white shadow-lg py-1" role="listbox">
-                    {teeOptions.map((t) => {
-                      const sel = selectedTee?.id === t.id;
-                      return (
-                        <li key={t.id} role="option" aria-selected={sel}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedTee(t);
-                              setTeeMenuOpen(false);
-                            }}
-                            className={`w-full text-left px-3.5 py-3 ${
-                              sel ? 'bg-primary text-white' : 'hover:bg-surface-container-low'
-                            }`}
-                          >
-                            <span className={`block text-[14px] font-semibold ${sel ? 'text-white' : 'text-primary'}`}>
-                              {t.tee_name} · {t.total_yards} yds
-                            </span>
-                            <span className={`block text-[11px] mt-0.5 ${sel ? 'text-white/75' : 'text-on-surface-variant'}`}>
-                              {formatTeeRatingLine(t)}
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <div>
-              <h3 className="font-headline italic text-xl text-primary">Players</h3>
-              <p className="text-[13px] text-on-surface-variant mt-0.5">You’re always in. Tap friends to add them.</p>
-            </div>
-
-            {friendUsers.length > 0 && (
-              <div className="score-sheet rounded-xl overflow-hidden">
-                <p className="px-3.5 pt-3 text-[10px] font-bold uppercase tracking-widest text-secondary">Friends</p>
-                <ul className="divide-y divide-primary/8">
-                  {friendUsers.map((u) => {
-                    const sid = String(u.id);
-                    const selected = [...selectedPlayers].some((x) => String(x) === sid);
-                    return (
-                      <li key={u.id}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const next = new Set([...selectedPlayers].map(String));
-                            selected ? next.delete(sid) : next.add(sid);
-                            setSelectedPlayers(next);
-                          }}
-                          className={`w-full flex items-center gap-3 px-3.5 py-3 text-left transition-colors ${
-                            selected ? 'bg-primary/[0.05]' : 'bg-white'
-                          }`}
-                        >
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center text-sm font-bold text-primary shrink-0">
-                            {u.avatar_url ? <img className="h-full w-full object-cover" src={u.avatar_url} alt="" /> : u.display_name[0]}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[15px] font-semibold text-primary truncate">{u.display_name}</p>
-                            <p className="text-[12px] text-on-surface-variant">HCP {u.handicap_index ?? '—'}</p>
-                          </div>
-                          <span
-                            className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-                              selected ? 'bg-primary border-primary text-white' : 'border-outline-variant text-transparent'
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {otherUsers.length > 0 && (
-              <div className="score-sheet rounded-xl overflow-hidden">
-                <p className="px-3.5 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Others</p>
-                <ul className="divide-y divide-primary/8">
-                  {otherUsers.map((u) => {
-                    const sid = String(u.id);
-                    const selected = [...selectedPlayers].some((x) => String(x) === sid);
-                    return (
-                      <li key={u.id}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const next = new Set([...selectedPlayers].map(String));
-                            selected ? next.delete(sid) : next.add(sid);
-                            setSelectedPlayers(next);
-                          }}
-                          className={`w-full flex items-center gap-3 px-3.5 py-3 text-left ${
-                            selected ? 'bg-primary/[0.05]' : 'bg-white'
-                          }`}
-                        >
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex items-center justify-center text-sm font-bold text-primary shrink-0">
-                            {u.avatar_url ? <img className="h-full w-full object-cover" src={u.avatar_url} alt="" /> : u.display_name[0]}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[15px] font-semibold text-primary truncate">{u.display_name}</p>
-                            <p className="text-[12px] text-on-surface-variant">HCP {u.handicap_index ?? '—'}</p>
-                          </div>
-                          <span
-                            className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-                              selected ? 'bg-primary border-primary text-white' : 'border-outline-variant text-transparent'
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            <div className="score-sheet rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Subs</p>
-                  <p className="text-[12px] text-on-surface-variant mt-0.5">Guests not on Sandbags yet</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={openSubModal}
-                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-white text-[12px] font-bold"
-                >
-                  <span className="material-symbols-outlined text-[16px]">person_add</span>
-                  Add
-                </button>
-              </div>
-              {subs.length === 0 ? (
-                <p className="text-[13px] text-on-surface-variant py-1">None yet.</p>
-              ) : (
-                <ul className="divide-y divide-primary/8 -mx-1">
-                  {subs.map((s) => (
-                    <li key={s.clientId} className="flex items-center gap-2 py-2.5 px-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSubs((prev) =>
-                            prev.map((x) =>
-                              x.clientId === s.clientId ? { ...x, selected: !x.selected } : x
-                            )
-                          );
-                        }}
-                        className="flex-1 flex items-center gap-3 text-left min-w-0"
-                      >
-                        <span
-                          className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold shrink-0 ${
-                            s.selected ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
-                          }`}
-                        >
-                          {s.name.trim().charAt(0).toUpperCase() || '?'}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-[14px] font-semibold text-primary truncate">{s.name}</span>
-                          <span className="block text-[12px] text-on-surface-variant">HCP {s.handicap}</span>
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Remove ${s.name}`}
-                        onClick={() => setSubs((prev) => prev.filter((x) => x.clientId !== s.clientId))}
-                        className="p-2 text-on-surface-variant/60 hover:text-error"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">close</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
+            </section>
+          )}
 
           {subModalOpen && (
             <div
@@ -3369,13 +3446,21 @@ const NewMatchScreen = () => {
         className="fixed inset-x-0 z-40 border-t border-primary/8 bg-[rgba(243,247,244,0.96)] backdrop-blur-md px-4 pt-3"
         style={{ bottom: 'var(--nav-h)', paddingBottom: '0.75rem' }}
       >
-        <div className="phone-page mx-auto">
+        <div className="phone-page mx-auto flex gap-2.5">
           <button
             type="button"
-            onClick={openStartConfirm}
-            className="w-full bg-primary text-white py-4 rounded-lg font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            onClick={goSetupBack}
+            className="px-4 py-4 rounded-lg border border-primary/15 bg-white text-primary font-bold text-[13px] uppercase tracking-wide active:scale-[0.98] transition-transform"
           >
-            Continue
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={goSetupNext}
+            disabled={setupStep === 'course' && !canAdvanceCourse}
+            className="flex-1 bg-primary text-white py-4 rounded-lg font-bold text-[14px] uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-40"
+          >
+            {setupStep === 'game' ? 'Review' : 'Next'}
             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
         </div>
