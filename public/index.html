@@ -1846,95 +1846,64 @@ const ScorecardScreen = () => {
   };
 
   const shortCourse =
-    matchData.course_name?.split(' ').slice(0, 2).join(' ') || 'Live';
+    matchData.course_name?.split(' ').slice(0, 2).join(' ') || 'Play';
+  const moneyLabel =
+    (bets.length > 0 || matchJunkOn)
+      ? `${totalYou >= 0 ? '+' : ''}${totalYou.toFixed(2)}`
+      : null;
+  const carryLabel = skinsBet
+    ? `Carry $${Number(skinsBet.carry_over || 0).toFixed(2)}`
+    : (matchIsTeams && teamsMoneyBet && teamHolesWon)
+      ? `T1 ${teamHolesWon.w1}–T2 ${teamHolesWon.w2}`
+      : null;
 
   return (
     <div className="min-h-[100dvh]">
-      <TopHeader title={shortCourse} />
-      <main className="page-pad phone-page px-3 space-y-3">
-        <section className="rise-in flex items-start justify-between gap-2">
+      <TopHeader title="Play" />
+      <main className="page-pad phone-page px-4 space-y-4" style={{ paddingBottom: 'calc(var(--nav-h) + 5.75rem)' }}>
+        <section className="rise-in flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="font-headline italic text-[1.65rem] text-primary leading-tight truncate">
+            <p className="text-[11px] font-semibold text-on-surface-variant truncate">
               {matchData.course_name}
-            </h2>
-            <p className="text-[12px] text-on-surface-variant mt-0.5 truncate">
-              Hole {currentHoleNum} · Par {currentHolePar} · {currentHoleYdsLabel}
-              {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
             </p>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <h2 className="font-headline italic text-[2.75rem] text-primary leading-none tabular-nums">
+                {currentHoleNum}
+              </h2>
+              <div className="pb-1 min-w-0">
+                <p className="text-[15px] font-bold text-primary leading-tight">
+                  Par {currentHolePar}
+                </p>
+                <p className="text-[12px] text-on-surface-variant truncate">
+                  {currentHoleYdsLabel}
+                  {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <div className="flex flex-col items-end gap-2 shrink-0 pb-1">
             {matchIsNet && !matchIsStampede && (
-              <div className="bg-surface-container-low p-0.5 rounded-lg flex">
-                <button type="button" onClick={() => setScoringMode('gross')} className={`px-2.5 py-1.5 rounded-md font-label text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Gross</button>
-                <button type="button" onClick={() => setScoringMode('net')} className={`px-2.5 py-1.5 rounded-md font-label text-[11px] font-bold ${scoringMode === 'net' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Net</button>
+              <div className="bg-white border border-primary/10 p-0.5 rounded-lg flex">
+                <button type="button" onClick={() => setScoringMode('gross')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>G</button>
+                <button type="button" onClick={() => setScoringMode('net')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'net' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>N</button>
               </div>
             )}
             <button
               type="button"
               disabled={finishing}
               onClick={onFinishRoundButtonClick}
-              className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md border border-primary/15 ${finishRoundAwaitingConfirm ? 'bg-secondary-fixed text-on-secondary-fixed' : 'text-primary bg-white/70'} disabled:opacity-60`}
+              className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md ${
+                finishRoundAwaitingConfirm
+                  ? 'bg-secondary-fixed text-on-secondary-fixed'
+                  : 'text-on-surface-variant'
+              } disabled:opacity-60`}
             >
               {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
             </button>
           </div>
         </section>
 
-        <section className="rise-in-delay score-sheet rounded-xl px-3.5 py-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant">You</p>
-            <p className={`font-headline text-2xl tabular-nums leading-none ${(bets.length > 0 || matchJunkOn) ? (totalYou >= 0 ? 'text-fairway' : 'text-error') : 'text-primary'}`}>
-              {(bets.length > 0 || matchJunkOn)
-                ? `${totalYou >= 0 ? '+' : ''}${totalYou.toFixed(2)}`
-                : '—'}
-            </p>
-          </div>
-          <div className="text-right space-y-0.5">
-            {skinsBet && (
-              <p className="text-[12px] font-semibold text-primary">
-                Skins carry <span className="tabular-nums">${Number(skinsBet.carry_over || 0).toFixed(2)}</span>
-              </p>
-            )}
-            {matchIsTeams && teamsMoneyBet && teamHolesWon && (
-              <p className="text-[12px] font-semibold text-primary">
-                T1 {teamHolesWon.w1} — T2 {teamHolesWon.w2}
-              </p>
-            )}
-            {!skinsBet && !(matchIsTeams && teamsMoneyBet && teamHolesWon) && (
-              <p className="text-[12px] text-on-surface-variant">
-                {bets.length ? `${bets.length} active bet${bets.length === 1 ? '' : 's'}` : 'No money game'}
-              </p>
-            )}
-          </div>
-        </section>
-
-        <section className="score-sheet rounded-xl overflow-hidden">
-          <div className="bg-primary text-white px-3.5 py-3 flex items-center justify-between gap-2">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.16em] font-bold text-secondary-fixed">Now playing</p>
-              <p className="font-headline italic text-xl leading-none mt-0.5">
-                Hole {currentHoleNum}
-                <span className="text-base not-italic font-body font-semibold text-white/80 ml-2">
-                  Par {currentHolePar}
-                </span>
-              </p>
-            </div>
-            <button
-              type="button"
-              disabled={!user?.id}
-              onClick={() => {
-                if (!user?.id) return;
-                const ch = matchData.current_hole;
-                const row = scoreboardPlayers.find((p) => p.user_id === user.id);
-                const sc = row?.holes?.find((s) => s.hole_number === ch);
-                const hp = holes.find((h) => h.hole_number === ch);
-                openScoreModal(ch, user.id, user.display_name || 'You', hp?.par ?? 4, sc?.strokes, sc?.junk);
-              }}
-              className={`shrink-0 bg-secondary-fixed text-on-secondary-fixed px-3.5 py-2.5 rounded-lg text-[12px] font-bold uppercase tracking-wide active:scale-[0.98] transition-transform disabled:opacity-40 ${!allInHaveScoreCurrentHole ? 'pulse-ready' : ''}`}
-            >
-              {matchJunkOn ? 'Your score' : 'Enter score'}
-            </button>
-          </div>
+        <section className="rise-in-delay score-sheet rounded-xl overflow-hidden">
           <ul className="divide-y divide-primary/8">
             {scoreboardPlayers.map((player) => {
               const isMe = player.user_id === user?.id;
@@ -1947,6 +1916,11 @@ const ScorecardScreen = () => {
                   ? Math.max(1, Number(strokes) - Number(recv || 0))
                   : strokes;
               const teamN = Number(player.team_index ?? player.teamIndex);
+              const metaBits = [];
+              if (matchIsTeams && [1, 2].includes(teamN)) metaBits.push(`T${teamN}`);
+              if (showInOutBadges) metaBits.push(playerInOnBetRow(player) ? 'In' : 'Out');
+              if (netScoreView && recv > 0) metaBits.push(`+${recv}`);
+              if (matchIsStampede) metaBits.push(`Q ${player.stampede_quota ?? player.stampedeQuota ?? '—'}`);
               return (
                 <li key={player.user_id}>
                   <button
@@ -1961,26 +1935,21 @@ const ScorecardScreen = () => {
                         sc?.junk
                       )
                     }
-                    className={`w-full flex items-center gap-3 px-3.5 py-3 text-left hole-chip ${isMe ? 'bg-primary/[0.04]' : 'bg-white/50'}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hole-chip ${isMe ? 'bg-primary/[0.04]' : 'bg-white'}`}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className={`text-[15px] font-semibold truncate ${isMe ? 'text-primary' : 'text-on-surface'}`}>
-                        {player.display_name}
-                        {isMe ? ' · you' : ''}
+                      <p className={`text-[16px] font-semibold truncate ${isMe ? 'text-primary' : 'text-on-surface'}`}>
+                        {isMe ? 'You' : player.display_name}
                       </p>
-                      <p className="text-[11px] text-on-surface-variant truncate">
-                        {matchIsTeams && [1, 2].includes(teamN) ? `Team ${teamN}` : ''}
-                        {matchIsTeams && [1, 2].includes(teamN) && showInOutBadges ? ' · ' : ''}
-                        {showInOutBadges ? (playerInOnBetRow(player) ? 'In' : 'Out') : ''}
-                        {netScoreView && recv > 0 ? `${(matchIsTeams && [1, 2].includes(teamN)) || showInOutBadges ? ' · ' : ''}+${recv} hcp` : ''}
-                        {matchIsStampede ? ` · Quota ${player.stampede_quota ?? player.stampedeQuota ?? '—'}` : ''}
-                      </p>
+                      {metaBits.length > 0 && (
+                        <p className="text-[11px] text-on-surface-variant mt-0.5 truncate">{metaBits.join(' · ')}</p>
+                      )}
                     </div>
                     <div
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 font-headline text-xl tabular-nums ${
+                      className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 text-[1.35rem] font-bold tabular-nums ${
                         strokes
                           ? 'bg-primary text-white'
-                          : 'border border-dashed border-primary/25 text-on-surface-variant/50'
+                          : 'border border-dashed border-primary/20 text-on-surface-variant/40 bg-surface-container-low/40'
                       }`}
                     >
                       {displayStrokes || '—'}
@@ -1990,28 +1959,11 @@ const ScorecardScreen = () => {
               );
             })}
           </ul>
-          <div className="px-3.5 py-3 border-t border-primary/10 flex gap-2">
-            <button
-              type="button"
-              disabled={!canGoNextHole}
-              onClick={advanceHole}
-              className="flex-1 py-3.5 rounded-lg bg-primary text-on-primary font-label text-[12px] font-bold uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-transform"
-            >
-              {atFinalHole ? 'Final hole' : !allInHaveScoreCurrentHole ? 'Need scores' : 'Next hole'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/new-challenge')}
-              className="px-3.5 py-3.5 rounded-lg border border-primary/15 bg-white/80 text-primary font-label text-[12px] font-bold uppercase tracking-wide active:scale-[0.98] transition-transform"
-            >
-              Side bet
-            </button>
-          </div>
         </section>
 
         <details className="score-sheet rounded-xl overflow-hidden group">
-          <summary className="list-none cursor-pointer px-3.5 py-3 flex items-center justify-between font-label text-[12px] font-bold uppercase tracking-wider text-primary select-none">
-            <span>Full scorecard</span>
+          <summary className="list-none cursor-pointer px-3.5 py-3 flex items-center justify-between text-[12px] font-semibold text-on-surface-variant select-none">
+            <span>Scorecard</span>
             <span className="material-symbols-outlined text-lg text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
           </summary>
           <div className="border-t border-primary/10">
@@ -2315,16 +2267,24 @@ const ScorecardScreen = () => {
           </div>
         </details>
 
-        <section className="score-sheet rounded-xl overflow-hidden">
-          <div className="px-3.5 py-3 bg-primary text-white">
-            <h3 className="font-label text-[11px] font-bold uppercase tracking-widest text-secondary-fixed">Money</h3>
+        <details className="score-sheet rounded-xl overflow-hidden group">
+          <summary className="list-none cursor-pointer px-3.5 py-3 flex items-center justify-between text-[12px] font-semibold text-on-surface-variant select-none">
+            <span className="flex items-center gap-2 min-w-0">
+              <span>Money</span>
+              {moneyLabel != null && (
+                <span className={`tabular-nums font-bold ${totalYou >= 0 ? 'text-fairway' : 'text-error'}`}>
+                  {moneyLabel}
+                </span>
+              )}
+            </span>
+            <span className="material-symbols-outlined text-lg text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+          </summary>
+          <div className="border-t border-primary/10 p-3.5 space-y-3">
             {matchIsTeams && teamsMoneyBet && teamHolesWon && (
-              <p className="text-[12px] font-semibold text-secondary-fixed mt-1">
+              <p className="text-[12px] font-semibold text-primary">
                 Team match · T1 {teamHolesWon.w1} — T2 {teamHolesWon.w2}
               </p>
             )}
-          </div>
-          <div className="p-3.5 space-y-3">
             {bets.length > 0 ? (
               betsOrdered.map((b) => {
                 const n = b.participants?.length || 0;
@@ -2344,7 +2304,7 @@ const ScorecardScreen = () => {
                       <p className="text-[11px] text-on-surface-variant leading-snug mt-0.5">{betRulesHint(b)}</p>
                       <p className="text-[11px] text-on-surface-variant mt-1">{stakeLabel} · {n} in</p>
                     </div>
-                    <p className={`shrink-0 font-headline text-lg tabular-nums ${myR >= 0 ? 'text-fairway' : 'text-error'}`}>
+                    <p className={`shrink-0 text-[16px] font-bold tabular-nums ${myR >= 0 ? 'text-fairway' : 'text-error'}`}>
                       {myR >= 0 ? '+' : ''}{myR.toFixed(2)}
                     </p>
                   </div>
@@ -2381,16 +2341,56 @@ const ScorecardScreen = () => {
                 </ul>
               </div>
             )}
-            {(bets.length > 0 || matchJunkOn) && (
-              <div className="pt-2 border-t border-primary/10 flex justify-between items-center">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Your total</span>
-                <span className={`font-headline text-xl tabular-nums ${totalYou >= 0 ? 'text-fairway' : 'text-error'}`}>
-                  {totalYou >= 0 ? '+' : ''}{totalYou.toFixed(2)}
-                </span>
-              </div>
-            )}
           </div>
-        </section>
+        </details>
+      </main>
+
+      <div
+        className="fixed inset-x-0 z-40 border-t border-primary/10 bg-[rgba(243,247,244,0.97)] backdrop-blur-md px-4 pt-2.5"
+        style={{ bottom: 'var(--nav-h)', paddingBottom: '0.65rem' }}
+      >
+        <div className="phone-page mx-auto space-y-2">
+          <div className="flex items-center justify-between gap-2 px-0.5">
+            <p className="text-[13px] font-semibold text-on-surface min-w-0 truncate">
+              {moneyLabel != null ? (
+                <>
+                  <span className={totalYou >= 0 ? 'text-fairway' : 'text-error'}>{moneyLabel}</span>
+                  {carryLabel && <span className="text-on-surface-variant font-medium"> · {carryLabel}</span>}
+                </>
+              ) : (
+                <span className="text-on-surface-variant">No money game</span>
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/new-challenge')}
+              className="text-[12px] font-bold text-primary shrink-0"
+            >
+              Side bet
+            </button>
+          </div>
+          <button
+            type="button"
+            disabled={!canGoNextHole && !atFinalHole}
+            onClick={() => {
+              if (atFinalHole) onFinishRoundButtonClick();
+              else advanceHole();
+            }}
+            className={`w-full py-3.5 rounded-lg font-bold text-[14px] uppercase tracking-wide active:scale-[0.98] transition-transform disabled:opacity-40 ${
+              canGoNextHole || atFinalHole
+                ? 'bg-primary text-white'
+                : 'bg-surface-container-high text-on-surface-variant'
+            } ${!allInHaveScoreCurrentHole && !atFinalHole ? '' : ''} ${finishRoundAwaitingConfirm && atFinalHole ? 'bg-secondary-fixed text-on-secondary-fixed' : ''}`}
+          >
+            {atFinalHole
+              ? (finishing ? 'Finishing…' : finishRoundAwaitingConfirm ? 'Confirm finish?' : 'Finish round')
+              : !allInHaveScoreCurrentHole
+                ? 'Waiting on scores'
+                : 'Next hole'}
+          </button>
+        </div>
+      </div>
+
       </main>
 
       {scoreModal && (
