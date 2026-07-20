@@ -1521,6 +1521,7 @@ const ScorecardScreen = () => {
   const [finishRoundAwaitingConfirm, setFinishRoundAwaitingConfirm] = useState(false);
   const [holeNavBusy, setHoleNavBusy] = useState(false);
   const [viewHole, setViewHole] = useState(null);
+  const [myScoreOpen, setMyScoreOpen] = useState(false);
   const finishConfirmTimeoutRef = useRef(null);
   const requestedMatchId = (searchParams.get('matchId') || '').trim();
   const requestedMode = (searchParams.get('mode') || '').trim().toLowerCase();
@@ -1844,11 +1845,6 @@ const ScorecardScreen = () => {
       : myRoundToPar === 0 ? 'E'
         : myRoundToPar > 0 ? `+${myRoundToPar}`
           : String(myRoundToPar);
-  const myRoundTone =
-    myRoundToPar == null || myRoundToPar === '' ? 'text-on-secondary-fixed-variant'
-      : myRoundToPar < 0 ? 'text-fairway'
-        : myRoundToPar === 0 ? 'text-primary'
-          : 'text-error';
 
   const runFinishRound = async () => {
     if (!matchData || finishing) return;
@@ -1913,103 +1909,127 @@ const ScorecardScreen = () => {
     <div className="min-h-[100dvh]">
       <TopHeader title="Play" />
       <main className="page-pad phone-page px-4 space-y-4" style={{ paddingBottom: 'calc(var(--nav-h) + 6.75rem)' }}>
-        <section className="rise-in score-sheet rounded-xl overflow-hidden">
-          <div className="bg-primary px-3.5 pt-3 pb-3.5 text-white">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-[11px] font-semibold text-white/70 truncate min-w-0">
-                {matchData.course_name}
-              </p>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {matchIsNet && !matchIsStampede && (
-                  <div className="bg-white/15 p-0.5 rounded-lg flex">
-                    <button type="button" onClick={() => setScoringMode('gross')} className={`px-2 py-1 rounded-md text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-secondary-fixed text-on-secondary-fixed' : 'text-white/75'}`}>G</button>
-                    <button type="button" onClick={() => setScoringMode('net')} className={`px-2 py-1 rounded-md text-[11px] font-bold ${scoringMode === 'net' ? 'bg-secondary-fixed text-on-secondary-fixed' : 'text-white/75'}`}>N</button>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  disabled={finishing}
-                  onClick={onFinishRoundButtonClick}
-                  className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md ${
-                    finishRoundAwaitingConfirm
-                      ? 'bg-secondary-fixed text-on-secondary-fixed'
-                      : 'text-white/75 hover:text-white'
-                  } disabled:opacity-60`}
-                >
-                  {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <button
-                type="button"
-                aria-label="Previous hole"
-                disabled={viewHoleNum <= 1}
-                onClick={() => browseHole(viewHoleNum - 1)}
-                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-30 bg-white/12 border border-white/15"
-              >
-                <span className="material-symbols-outlined text-[24px]">chevron_left</span>
-              </button>
-              <div className="min-w-0 flex-1 flex items-end gap-2.5">
-                <h2 className="font-headline italic text-[3rem] leading-none tabular-nums text-secondary-fixed">
-                  {viewHoleNum}
-                </h2>
-                <div className="pb-1.5 min-w-0">
-                  <p className="text-[15px] font-bold text-white leading-tight">
-                    Par {viewHolePar}
-                  </p>
-                  <p className="text-[12px] text-white/65 truncate">
-                    {viewHoleYdsLabel}
-                    {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
-                  </p>
+        <section className="rise-in space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-[11px] font-semibold text-on-surface-variant truncate min-w-0">
+              {matchData.course_name}
+            </p>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {matchIsNet && !matchIsStampede && (
+                <div className="bg-white border border-primary/10 p-0.5 rounded-lg flex">
+                  <button type="button" onClick={() => setScoringMode('gross')} className={`px-2 py-1 rounded-md text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>G</button>
+                  <button type="button" onClick={() => setScoringMode('net')} className={`px-2 py-1 rounded-md text-[11px] font-bold ${scoringMode === 'net' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>N</button>
                 </div>
-              </div>
+              )}
               <button
                 type="button"
-                aria-label="Next hole"
-                disabled={viewHoleNum >= 18}
-                onClick={() => browseHole(viewHoleNum + 1)}
-                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-30 bg-white/12 border border-white/15"
+                disabled={finishing}
+                onClick={onFinishRoundButtonClick}
+                className={`text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-md ${
+                  finishRoundAwaitingConfirm
+                    ? 'bg-primary text-white'
+                    : 'text-on-surface-variant'
+                } disabled:opacity-60`}
               >
-                <span className="material-symbols-outlined text-[24px]">chevron_right</span>
+                {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
               </button>
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Previous hole"
+              disabled={viewHoleNum <= 1}
+              onClick={() => browseHole(viewHoleNum - 1)}
+              className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-primary disabled:opacity-30 bg-white border border-primary/10"
+            >
+              <span className="material-symbols-outlined text-[22px]">chevron_left</span>
+            </button>
+            <div className="min-w-0 flex-1 flex items-end gap-2">
+              <h2 className="font-headline italic text-[2.75rem] text-primary leading-none tabular-nums">
+                {viewHoleNum}
+              </h2>
+              <div className="pb-1 min-w-0">
+                <p className="text-[15px] font-bold text-primary leading-tight">
+                  Par {viewHolePar}
+                </p>
+                <p className="text-[12px] text-on-surface-variant truncate">
+                  {viewHoleYdsLabel}
+                  {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              aria-label="Next hole"
+              disabled={viewHoleNum >= 18}
+              onClick={() => browseHole(viewHoleNum + 1)}
+              className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-primary disabled:opacity-30 bg-white border border-primary/10"
+            >
+              <span className="material-symbols-outlined text-[22px]">chevron_right</span>
+            </button>
             {viewingAwayFromLive && (
               <button
                 type="button"
                 onClick={() => browseHole(liveHoleNum)}
-                className="mt-3 w-full flex items-center justify-between gap-2 rounded-lg bg-secondary-fixed px-3 py-2.5 text-on-secondary-fixed"
+                className="shrink-0 self-center text-[10px] font-bold uppercase tracking-wide text-on-surface-variant border border-primary/15 bg-white rounded-md px-1.5 py-1 leading-none"
+                title={`Jump to live hole ${liveHoleNum}`}
               >
-                <span className="text-[12px] font-bold uppercase tracking-wide">Live hole</span>
-                <span className="font-headline italic text-[1.35rem] leading-none tabular-nums">{liveHoleNum}</span>
+                Live {liveHoleNum}
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 divide-x divide-primary/10 bg-[#E8C97A]/55">
-            <div className="px-3.5 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-secondary-fixed-variant">This hole</p>
-              <p className={`mt-0.5 text-[1.65rem] font-bold tabular-nums leading-none ${
-                myHoleVsPar == null ? 'text-on-surface-variant'
-                  : myHoleVsPar < 0 ? 'text-fairway'
-                    : myHoleVsPar === 0 ? 'text-primary'
-                      : 'text-error'
-              }`}>
-                {myDisplayHoleStrokes != null ? myDisplayHoleStrokes : '—'}
-                {myHoleVsParLabel != null && (
-                  <span className="ml-1.5 text-[14px] font-semibold">{myHoleVsParLabel}</span>
-                )}
-              </p>
-            </div>
-            <div className="px-3.5 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-secondary-fixed-variant">Round</p>
-              <p className={`mt-0.5 text-[1.65rem] font-bold tabular-nums leading-none ${myRoundTone}`}>
-                {myRoundToParLabel}
-              </p>
-            </div>
-          </div>
         </section>
 
-        <section className="rise-in-delay score-sheet rounded-xl overflow-hidden">
+        <div className="rise-in score-sheet rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setMyScoreOpen((o) => !o)}
+            className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left"
+            aria-expanded={myScoreOpen}
+          >
+            <span className="text-[12px] font-semibold text-on-surface-variant">
+              Your score
+              <span className="ml-2 tabular-nums text-primary font-bold">
+                {myDisplayHoleStrokes != null ? myDisplayHoleStrokes : '—'}
+                {myHoleVsParLabel != null ? ` ${myHoleVsParLabel}` : ''}
+                <span className="text-on-surface-variant font-medium"> · {myRoundToParLabel}</span>
+              </span>
+            </span>
+            <span className={`material-symbols-outlined text-lg text-on-surface-variant transition-transform ${myScoreOpen ? 'rotate-180' : ''}`}>
+              expand_more
+            </span>
+          </button>
+          {myScoreOpen && (
+            <div className="grid grid-cols-2 divide-x divide-primary/8 border-t border-primary/8">
+              <div className="px-3.5 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">This hole</p>
+                <p className="mt-0.5 text-[1.5rem] font-bold tabular-nums leading-none text-primary">
+                  {myDisplayHoleStrokes != null ? myDisplayHoleStrokes : '—'}
+                  {myHoleVsParLabel != null && (
+                    <span className="ml-1.5 text-[13px] font-semibold text-on-surface-variant">{myHoleVsParLabel}</span>
+                  )}
+                </p>
+              </div>
+              <div className="px-3.5 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Round</p>
+                <p className="mt-0.5 text-[1.5rem] font-bold tabular-nums leading-none text-primary">
+                  {myRoundToParLabel}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <section className="rise-in-delay score-sheet rounded-2xl overflow-hidden shadow-[0_12px_40px_-24px_rgba(11,46,34,0.35)]">
+          <div className="px-4 pt-3.5 pb-2 flex items-center justify-between gap-2 border-b border-primary/8 bg-white">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-on-surface-variant">
+              Hole {viewHoleNum} · tap to score
+            </p>
+            <p className="text-[11px] font-semibold text-on-surface-variant tabular-nums">
+              {scoreboardPlayers.filter((p) => hasScoreForHole(p, viewHoleNum)).length}/{scoreboardPlayers.length}
+            </p>
+          </div>
           <ul className="divide-y divide-primary/8">
             {scoreboardPlayers.map((player) => {
               const isMe = player.user_id === user?.id;
@@ -2021,6 +2041,24 @@ const ScorecardScreen = () => {
                 netScoreView && strokes != null && Number(strokes) >= 1
                   ? Math.max(1, Number(strokes) - Number(recv || 0))
                   : strokes;
+              const parN = viewHolePar === '?' ? 4 : Number(viewHolePar);
+              const vsPar =
+                displayStrokes != null && Number(displayStrokes) >= 1
+                  ? Number(displayStrokes) - parN
+                  : null;
+              const relLabel = vsPar == null ? null : strokeRelativeLabel(Number(displayStrokes), parN);
+              let scoreShape = '';
+              if (vsPar != null) {
+                if (vsPar <= -2) scoreShape = 'eagle-circle';
+                else if (vsPar === -1) scoreShape = 'birdie-circle';
+                else if (vsPar === 1) scoreShape = 'bogey-square';
+                else if (vsPar >= 2) scoreShape = 'dbl-bogey-square';
+              }
+              const name = String(player.display_name || '?').trim();
+              const parts = name.split(/\s+/);
+              const initials = parts.length >= 2
+                ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                : name.slice(0, 2).toUpperCase();
               const teamN = Number(player.team_index ?? player.teamIndex);
               const metaBits = [];
               if (matchIsTeams && [1, 2].includes(teamN)) metaBits.push(`T${teamN}`);
@@ -2041,24 +2079,45 @@ const ScorecardScreen = () => {
                         sc?.junk
                       )
                     }
-                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hole-chip ${isMe ? 'bg-primary/[0.04]' : 'bg-white'}`}
+                    className={`w-full flex items-center gap-3.5 px-4 py-4 text-left hole-chip transition-colors ${
+                      isMe ? 'bg-primary/[0.03]' : 'bg-white'
+                    }`}
                   >
+                    <div
+                      className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-[13px] font-bold ${
+                        isMe
+                          ? 'bg-primary text-white'
+                          : 'bg-surface-container-high text-primary'
+                      }`}
+                      aria-hidden
+                    >
+                      {isMe ? 'You' : initials}
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <p className={`text-[16px] font-semibold truncate ${isMe ? 'text-primary' : 'text-on-surface'}`}>
+                      <p className={`text-[17px] font-semibold truncate ${isMe ? 'text-primary' : 'text-on-surface'}`}>
                         {isMe ? 'You' : player.display_name}
                       </p>
-                      {metaBits.length > 0 && (
-                        <p className="text-[11px] text-on-surface-variant mt-0.5 truncate">{metaBits.join(' · ')}</p>
-                      )}
+                      <p className="text-[12px] text-on-surface-variant mt-0.5 truncate">
+                        {relLabel
+                          ? relLabel
+                          : (metaBits.length > 0 ? metaBits.join(' · ') : 'Tap to enter score')}
+                        {relLabel && metaBits.length > 0 ? ` · ${metaBits.join(' · ')}` : ''}
+                      </p>
                     </div>
-                    <div
-                      className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 text-[1.35rem] font-bold tabular-nums ${
-                        strokes
-                          ? 'bg-primary text-white'
-                          : 'border border-dashed border-primary/20 text-on-surface-variant/40 bg-surface-container-low/40'
-                      }`}
-                    >
-                      {displayStrokes || '—'}
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <div
+                        className={`w-[3.75rem] h-[3.75rem] flex items-center justify-center text-[1.5rem] font-bold tabular-nums ${scoreShape} ${
+                          displayStrokes != null
+                            ? (vsPar != null && vsPar < 0
+                              ? 'text-primary'
+                              : vsPar != null && vsPar > 0
+                                ? 'text-error'
+                                : 'text-primary')
+                            : 'rounded-2xl border border-dashed border-primary/20 text-on-surface-variant/35 bg-surface-container-low/50'
+                        } ${displayStrokes != null && !scoreShape ? 'rounded-2xl bg-surface-container-low' : ''}`}
+                      >
+                        {displayStrokes != null ? displayStrokes : '—'}
+                      </div>
                     </div>
                   </button>
                 </li>
