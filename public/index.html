@@ -141,6 +141,29 @@
         .editorial-overlay {
           background: linear-gradient(to bottom, rgba(1, 45, 29, 0.4) 0%, rgba(1, 45, 29, 0.1) 40%, rgba(1, 45, 29, 0.6) 100%);
         }
+        .login-hero-scrim {
+          background:
+            radial-gradient(ellipse 90% 55% at 50% 18%, rgba(1, 45, 29, 0.72) 0%, rgba(1, 45, 29, 0.35) 55%, transparent 75%),
+            linear-gradient(to bottom, rgba(1, 45, 29, 0.55) 0%, rgba(1, 45, 29, 0.2) 42%, rgba(1, 45, 29, 0.72) 100%);
+        }
+        .sandbags-mark {
+          color: #ffffff;
+          text-shadow:
+            0 1px 0 rgba(0, 0, 0, 0.35),
+            0 8px 28px rgba(0, 0, 0, 0.45),
+            0 2px 8px rgba(0, 0, 0, 0.55);
+          letter-spacing: -0.03em;
+        }
+        .sandbags-sub {
+          color: #e8c97a;
+          text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+        }
+        .login-field {
+          font-size: 13px;
+          line-height: 1.25;
+          padding-top: 0.7rem;
+          padding-bottom: 0.7rem;
+        }
         .glass-card {
           background: rgba(255, 255, 255, 0.92);
           backdrop-filter: blur(12px);
@@ -411,30 +434,33 @@ function LoginScreen() {
     }
   };
 
+  const fieldClass =
+    'login-field w-full bg-surface-container-lowest border-none rounded-lg px-4 text-primary placeholder:text-primary/35 focus:ring-1 focus:ring-secondary/30 transition-all font-medium shadow-sm';
+
   return (
-    <div className="bg-[#012d1d] overflow-hidden font-body text-on-background h-screen w-full flex items-center justify-center relative">
+    <div className="bg-[#012d1d] overflow-y-auto overflow-x-hidden font-body text-on-background min-h-[100dvh] w-full flex items-center justify-center relative">
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img className="w-full h-full object-cover" alt="" src={LOGIN_HERO} />
-        <div className="absolute inset-0 editorial-overlay" />
+        <div className="absolute inset-0 login-hero-scrim" />
       </div>
-      <main className="relative z-10 w-full max-w-lg px-8 flex flex-col items-center">
-        <header className="mb-12 text-center">
-          <h1 className="font-headline italic font-bold text-6xl tracking-tighter text-surface mb-2">
+      <main className="relative z-10 w-full max-w-lg px-6 py-10 flex flex-col items-center">
+        <header className="mb-8 text-center">
+          <h1 className="font-headline italic font-bold text-5xl sm:text-6xl sandbags-mark mb-2">
             Sandbags
           </h1>
-          <p className="font-headline text-surface text-xl tracking-[0.3em] uppercase font-medium">
+          <p className="font-headline sandbags-sub text-sm sm:text-base tracking-[0.28em] uppercase font-semibold">
             Member Entry
           </p>
         </header>
-        <div className="glass-card w-full p-10 rounded-xl border">
-          <form className="space-y-6" onSubmit={submit}>
+        <div className="glass-card w-full p-6 sm:p-8 rounded-xl border">
+          <form className="space-y-4" onSubmit={submit}>
             {mode === 'register' && (
-              <div className="space-y-2">
-                <label className="font-headline italic text-[12px] uppercase tracking-[0.2em] font-semibold text-primary px-1">
+              <div className="space-y-1.5">
+                <label className="font-headline italic text-[11px] uppercase tracking-[0.18em] font-semibold text-primary px-1">
                   Full Name
                 </label>
                 <input
-                  className="w-full bg-surface-container-lowest border-none rounded-lg py-4 px-5 text-primary placeholder:text-primary/30 focus:ring-1 focus:ring-secondary/30 transition-all text-sm font-medium shadow-sm"
+                  className={fieldClass}
                   placeholder="Arthur J. Hills"
                   type="text"
                   value={displayName}
@@ -443,12 +469,12 @@ function LoginScreen() {
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <label className="font-headline italic text-[12px] uppercase tracking-[0.2em] font-semibold text-primary px-1">
+            <div className="space-y-1.5">
+              <label className="font-headline italic text-[11px] uppercase tracking-[0.18em] font-semibold text-primary px-1">
                 Member Email
               </label>
               <input
-                className="w-full bg-surface-container-lowest border-none rounded-lg py-4 px-5 text-primary placeholder:text-primary/30 focus:ring-1 focus:ring-secondary/30 transition-all text-sm font-medium shadow-sm"
+                className={fieldClass}
                 placeholder="member@sandbags.club"
                 type="email"
                 value={email}
@@ -457,30 +483,30 @@ function LoginScreen() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <label className="font-headline italic text-[12px] uppercase tracking-[0.2em] font-semibold text-primary px-1">
+            <div className="space-y-1.5">
+              <label className="font-headline italic text-[11px] uppercase tracking-[0.18em] font-semibold text-primary px-1">
                 Current Handicap
               </label>
               <div className="relative">
                 <input
-                  className="w-full bg-surface-container-lowest border-none rounded-lg py-4 px-5 pr-12 text-primary placeholder:text-primary/30 focus:ring-1 focus:ring-secondary/30 transition-all text-sm font-medium shadow-sm"
+                  className={`${fieldClass} pr-11`}
                   placeholder="0.0"
                   step="0.1"
                   type="number"
                   value={handicap}
                   onChange={(ev) => setHandicap(ev.target.value)}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <span className="material-symbols-outlined login-material-symbols text-primary/20 text-lg">golf_course</span>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="material-symbols-outlined login-material-symbols text-primary/20 text-base">golf_course</span>
                 </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="font-headline italic text-[12px] uppercase tracking-[0.2em] font-semibold text-primary px-1">
+            <div className="space-y-1.5">
+              <label className="font-headline italic text-[11px] uppercase tracking-[0.18em] font-semibold text-primary px-1">
                 Security Code
               </label>
               <input
-                className="w-full bg-surface-container-lowest border-none rounded-lg py-4 px-5 text-primary placeholder:text-primary/30 focus:ring-1 focus:ring-secondary/30 transition-all text-sm font-medium shadow-sm"
+                className={fieldClass}
                 placeholder="••••••••"
                 type="password"
                 value={password}
@@ -489,21 +515,21 @@ function LoginScreen() {
                 required
               />
             </div>
-            <label className="flex items-center gap-3 cursor-pointer select-none">
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={remember}
                 onChange={(ev) => setRemember(ev.target.checked)}
                 className="rounded border-outline-variant text-primary-container focus:ring-secondary/30"
               />
-              <span className="text-sm font-medium text-primary/80">Remember me on this device</span>
+              <span className="text-[13px] font-medium text-primary/80">Remember me on this device</span>
             </label>
             {error && (
-              <p className="text-sm text-error font-medium px-1" role="alert">{error}</p>
+              <p className="text-[13px] text-error font-medium px-1" role="alert">{error}</p>
             )}
-            <div className="pt-4">
+            <div className="pt-2">
               <button
-                className="w-full text-surface py-5 rounded-lg font-headline italic font-bold tracking-widest text-sm uppercase hover:brightness-110 transition-all active:scale-[0.98] flex items-center justify-center group shadow-lg bg-primary-container disabled:opacity-60"
+                className="w-full text-surface py-3.5 rounded-lg font-headline italic font-bold tracking-widest text-xs uppercase hover:brightness-110 transition-all active:scale-[0.98] flex items-center justify-center group shadow-lg bg-primary-container disabled:opacity-60"
                 type="submit"
                 disabled={busy}
               >
@@ -512,7 +538,7 @@ function LoginScreen() {
               </button>
             </div>
             {mode === 'login' && (
-              <div className="pt-4 border-t border-primary/10">
+              <div className="pt-3 border-t border-primary/10">
                 <p className="text-[10px] font-medium text-primary/50 uppercase tracking-widest mb-2 px-1">Local demo account</p>
                 <button
                   type="button"
@@ -538,9 +564,9 @@ function LoginScreen() {
                       setBusy(false);
                     }
                   }}
-                  className="w-full rounded-lg border border-primary/20 bg-surface-container-lowest/80 py-3 px-4 text-left text-sm font-medium text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-60"
+                  className="w-full rounded-lg border border-primary/20 bg-surface-container-lowest/80 py-2.5 px-3 text-left text-[13px] font-medium text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-60"
                 >
-                  <span className="font-headline italic">Timothy Ramza</span>
+                  <span className="font-headline italic text-[14px]">Timothy Ramza</span>
                   <span className="block text-[11px] text-primary/60 font-normal mt-0.5 tabular-nums">
                     timothy@example.com · password123
                   </span>
@@ -548,7 +574,7 @@ function LoginScreen() {
               </div>
             )}
           </form>
-          <footer className="mt-8 flex justify-between items-center px-1 flex-wrap gap-2">
+          <footer className="mt-6 flex justify-between items-center px-1 flex-wrap gap-2">
             <button
               type="button"
               className="text-[11px] font-headline italic text-primary/70 uppercase tracking-widest hover:text-[#c5a059] transition-colors font-normal bg-transparent border-0 cursor-pointer p-0"
@@ -566,10 +592,10 @@ function LoginScreen() {
             </button>
           </footer>
         </div>
-        <div className="mt-12 flex items-center gap-4 text-surface/40">
-          <div className="h-[1px] w-8 bg-surface/20" />
-          <p className="font-headline italic text-sm tracking-widest">Est. 1928</p>
-          <div className="h-[1px] w-8 bg-surface/20" />
+        <div className="mt-8 flex items-center gap-4 text-white/50">
+          <div className="h-[1px] w-8 bg-white/25" />
+          <p className="font-headline italic text-sm tracking-widest text-white/60">Est. 1928</p>
+          <div className="h-[1px] w-8 bg-white/25" />
         </div>
       </main>
     </div>
