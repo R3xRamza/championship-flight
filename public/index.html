@@ -384,9 +384,7 @@ function LoginScreen() {
     }
   });
   const [displayName, setDisplayName] = useState('');
-  const [handicap, setHandicap] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -410,18 +408,13 @@ function LoginScreen() {
           email: email.trim(),
           password,
           display_name: displayName.trim(),
-          handicap_index: handicap === '' ? undefined : Number(handicap),
         });
-        API.setToken(res.token, remember);
+        API.setToken(res.token, true);
         setUser(res.user);
       } else {
         const res = await API.login(email.trim(), password);
-        API.setToken(res.token, remember);
+        API.setToken(res.token, true);
         setUser(res.user);
-        if (handicap !== '' && Number.isFinite(Number(handicap))) {
-          const updated = await API.patchProfile({ handicap_index: Number(handicap) });
-          setUser(updated);
-        }
       }
       try {
         localStorage.setItem('cf_last_email', email.trim());
@@ -485,24 +478,6 @@ function LoginScreen() {
             </div>
             <div className="space-y-1.5">
               <label className="font-headline italic text-[11px] uppercase tracking-[0.18em] font-semibold text-primary px-1">
-                Current Handicap
-              </label>
-              <div className="relative">
-                <input
-                  className={`${fieldClass} pr-11`}
-                  placeholder="0.0"
-                  step="0.1"
-                  type="number"
-                  value={handicap}
-                  onChange={(ev) => setHandicap(ev.target.value)}
-                />
-                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <span className="material-symbols-outlined login-material-symbols text-primary/20 text-base">golf_course</span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="font-headline italic text-[11px] uppercase tracking-[0.18em] font-semibold text-primary px-1">
                 Security Code
               </label>
               <input
@@ -515,15 +490,6 @@ function LoginScreen() {
                 required
               />
             </div>
-            <label className="flex items-center gap-2.5 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(ev) => setRemember(ev.target.checked)}
-                className="rounded border-outline-variant text-primary-container focus:ring-secondary/30"
-              />
-              <span className="text-[13px] font-medium text-primary/80">Remember me on this device</span>
-            </label>
             {error && (
               <p className="text-[13px] text-error font-medium px-1" role="alert">{error}</p>
             )}
@@ -552,7 +518,7 @@ function LoginScreen() {
                       setEmail(demoEmail);
                       setPassword(demoPassword);
                       const res = await API.login(demoEmail, demoPassword);
-                      API.setToken(res.token, remember);
+                      API.setToken(res.token, true);
                       setUser(res.user);
                       try {
                         localStorage.setItem('cf_last_email', demoEmail);
