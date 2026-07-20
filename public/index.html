@@ -2599,25 +2599,25 @@ const ScorecardScreen = () => {
               Side bet
             </button>
           </div>
-          <button
-            type="button"
-            disabled={holeNavBusy || (!canGoNextHole && !atFinalHole)}
-            onClick={() => {
-              if (atFinalHole) onFinishRoundButtonClick();
-              else advanceHole();
-            }}
-            className={`w-full py-3.5 rounded-lg font-bold text-[14px] uppercase tracking-wide active:scale-[0.98] transition-transform disabled:opacity-40 ${
-              canGoNextHole || atFinalHole
-                ? 'bg-primary text-white'
-                : 'bg-surface-container-high text-on-surface-variant'
-            } ${!allInHaveScoreCurrentHole && !atFinalHole ? '' : ''} ${finishRoundAwaitingConfirm && atFinalHole ? 'bg-secondary-fixed text-on-secondary-fixed' : ''}`}
-          >
-            {atFinalHole
-              ? (finishing ? 'Finishing…' : finishRoundAwaitingConfirm ? 'Confirm finish?' : 'Finish round')
-              : !allInHaveScoreCurrentHole
-                ? 'Waiting on scores'
+          {(canGoNextHole || atFinalHole) && (
+            <button
+              type="button"
+              disabled={holeNavBusy || finishing}
+              onClick={() => {
+                if (atFinalHole) onFinishRoundButtonClick();
+                else advanceHole();
+              }}
+              className={`w-full py-3.5 rounded-lg font-bold text-[14px] uppercase tracking-wide active:scale-[0.98] transition-transform disabled:opacity-40 ${
+                finishRoundAwaitingConfirm && atFinalHole
+                  ? 'bg-secondary-fixed text-on-secondary-fixed'
+                  : 'bg-primary text-white'
+              }`}
+            >
+              {atFinalHole
+                ? (finishing ? 'Finishing…' : finishRoundAwaitingConfirm ? 'Confirm finish?' : 'Finish round')
                 : 'Next hole'}
-          </button>
+            </button>
+          )}
         </div>
       </div>
 
