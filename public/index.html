@@ -1518,9 +1518,7 @@ const ScorecardScreen = () => {
   const [modalJunk, setModalJunk] = useState({});
   const [modalPutts, setModalPutts] = useState(2);
   const [modalFairway, setModalFairway] = useState(null); // true | false | null
-  const [modalTeeDir, setModalTeeDir] = useState(null); // 'L'|'R'|'S'|'LNG'|null
   const [modalGir, setModalGir] = useState(false);
-  const [scoreModalMode, setScoreModalMode] = useState('basic'); // basic | advanced
   const [loading, setLoading] = useState(true);
   const [finishing, setFinishing] = useState(false);
   const [finishRoundAwaitingConfirm, setFinishRoundAwaitingConfirm] = useState(false);
@@ -1624,16 +1622,14 @@ const ScorecardScreen = () => {
     setModalJunk({});
     setModalPutts(2);
     setModalFairway(null);
-    setModalTeeDir(null);
     setModalGir(false);
-    setScoreModalMode('basic');
   };
 
   const openScoreModal = (holeNumber, userId, displayName, par, existingStrokes, existingJunk, existingExtras = {}) => {
     const parN = Number(par) || 4;
     setScoreModal({ holeNumber, userId, displayName, par: parN });
     const presets = strokePresetsForPar(parN);
-    const ex = typeof existingStrokes === 'number' && existingStrokes > 0 ? existingStrokes : parN;
+    const ex = typeof existingStrokes === 'number' && existingStrokes > 0 ? existingStrokes : null;
     setModalStrokes(ex);
     setModalManualScoreDraft(ex != null && !presets.includes(ex) ? String(ex) : '');
     const j = {};
@@ -1647,31 +1643,14 @@ const ScorecardScreen = () => {
     setModalJunk(j);
     const puttsRaw = existingExtras.putts ?? existingExtras.putts_count;
     const puttsN = Number(puttsRaw);
-    setModalPutts(Number.isFinite(puttsN) && puttsN >= 0 ? Math.min(puttsN, ex || parN) : Math.min(2, ex || parN));
+    const strokeBase = ex != null ? ex : parN;
+    setModalPutts(Number.isFinite(puttsN) && puttsN >= 0 ? Math.min(puttsN, strokeBase) : Math.min(2, strokeBase));
     const fw = existingExtras.fairway_hit ?? existingExtras.fairwayHit;
-    if (fw === true || fw === 1 || fw === '1' || fw === 'true') {
-      setModalFairway(true);
-      setModalTeeDir(null);
-    } else if (fw === false || fw === 0 || fw === '0' || fw === 'false') {
-      setModalFairway(false);
-      setModalTeeDir(null);
-    } else {
-      setModalFairway(parN >= 4 ? null : null);
-      setModalTeeDir(null);
-    }
+    if (fw === true || fw === 1 || fw === '1' || fw === 'true') setModalFairway(true);
+    else if (fw === false || fw === 0 || fw === '0' || fw === 'false') setModalFairway(false);
+    else setModalFairway(null);
     const gir = existingExtras.gir ?? existingExtras.green_in_regulation;
     setModalGir(gir === true || gir === 1 || gir === '1' || gir === 'true');
-    setScoreModalMode('basic');
-  };
-
-  const bumpModalStrokes = (delta) => {
-    setModalManualScoreDraft('');
-    setModalStrokes((prev) => {
-      const base = prev != null && prev >= 1 ? prev : (scoreModal?.par || 4);
-      const next = Math.min(15, Math.max(1, base + delta));
-      setModalPutts((p) => Math.min(p, next));
-      return next;
-    });
   };
 
   const bumpModalPutts = (delta) => {
@@ -1869,6 +1848,12 @@ const ScorecardScreen = () => {
     } catch (e) { console.error(e); }
     setHoleNavBusy(false);
   };
+
+  useEffect(() => {
+    if (loading || !matchData || scoreModal || finishing || holeNavBusy) return;
+    if (!canGoNextHole) return;
+    void advanceHole();
+  }, [canGoNextHole, liveHoleNum, loading, scoreModal, finishing, holeNavBusy, matchData?.id]);
 
   const toggleHideMyRoundScore = () => {
     setHideMyRoundScore((prev) => {
@@ -2599,250 +2584,207 @@ const ScorecardScreen = () => {
               Side bet
             </button>
           </div>
-          {(canGoNextHole || atFinalHole) && (
+          {atFinalHole && (
             <button
               type="button"
               disabled={holeNavBusy || finishing}
-              onClick={() => {
-                if (atFinalHole) onFinishRoundButtonClick();
-                else advanceHole();
-              }}
+              onClick={onFinishRoundButtonClick}
               className={`w-full py-3.5 rounded-lg font-bold text-[14px] uppercase tracking-wide active:scale-[0.98] transition-transform disabled:opacity-40 ${
-                finishRoundAwaitingConfirm && atFinalHole
+                finishRoundAwaitingConfirm
                   ? 'bg-secondary-fixed text-on-secondary-fixed'
                   : 'bg-primary text-white'
               }`}
             >
-              {atFinalHole
-                ? (finishing ? 'Finishing…' : finishRoundAwaitingConfirm ? 'Confirm finish?' : 'Finish round')
-                : 'Next hole'}
+              {finishing ? 'Finishing…' : finishRoundAwaitingConfirm ? 'Confirm finish?' : 'Finish round'}
             </button>
           )}
         </div>
       </div>
 
-      {scoreModal && (() => {
-        const name = String(scoreModal.displayName || '?').trim();
-        const parts = name.split(/\s+/);
-        const initials = parts.length >= 2
-          ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-          : name.slice(0, 2).toUpperCase();
-        const strokesVal = modalStrokes != null && modalStrokes >= 1 ? modalStrokes : scoreModal.par;
-        const vsPar = strokesVal - scoreModal.par;
-        const vsLabel = strokeRelativeLabel(strokesVal, scoreModal.par);
-        const isPar3 = Number(scoreModal.par) === 3;
-        const showTee = !isPar3;
-        return (
+      {scoreModal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           <button
             type="button"
             aria-label="Close score entry"
-            className="absolute inset-0 bg-primary/45 border-0 cursor-default"
+            className="absolute inset-0 bg-primary/55 border-0 cursor-default"
             onClick={closeScoreModal}
           />
           <div
-            className="relative z-10 w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-xl overflow-hidden max-h-[94dvh] flex flex-col score-modal-enter pb-[env(safe-area-inset-bottom)]"
+            className="relative z-10 w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-xl overflow-hidden max-h-[92dvh] flex flex-col score-modal-enter pb-[env(safe-area-inset-bottom)]"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-labelledby="score-modal-title"
           >
-            <div className="px-4 pt-3 pb-3 flex items-center gap-3 border-b border-primary/8 flex-shrink-0 bg-white">
-              <div className="mx-auto absolute left-1/2 -translate-x-1/2 top-2 h-1 w-10 rounded-full bg-primary/15 sm:hidden" />
-              <div className="w-11 h-11 rounded-full border-2 border-primary/20 bg-surface-container-high flex items-center justify-center text-[13px] font-bold text-primary shrink-0">
-                {initials}
+            <div className="bg-primary px-4 py-4 text-center flex-shrink-0">
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/30 sm:hidden" />
+              <div className="flex justify-between items-start">
+                <button type="button" onClick={closeScoreModal} className="text-on-primary/70 hover:text-on-primary transition-colors p-0 border-0 bg-transparent cursor-pointer tap-target flex items-center justify-center">
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+                <div className="text-center flex-1 min-w-0 px-2">
+                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.16em] text-secondary-fixed">
+                    Hole {scoreModal.holeNumber} · Par {scoreModal.par}
+                  </p>
+                  <h3 id="score-modal-title" className="font-headline italic text-2xl text-on-primary mt-0.5 truncate">{scoreModal.displayName}</h3>
+                </div>
+                <div className="w-11" />
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 id="score-modal-title" className="text-[16px] font-bold text-primary truncate leading-tight">
-                  {scoreModal.displayName}
-                </h3>
-                <p className="text-[12px] text-on-surface-variant mt-0.5">
-                  Hole {scoreModal.holeNumber} · Par {scoreModal.par}
-                  <span className="mx-1.5 text-primary/30">·</span>
-                  <span className={vsPar < 0 ? 'text-primary font-semibold' : vsPar > 0 ? 'text-error font-semibold' : 'font-semibold text-primary'}>
-                    {vsLabel}
-                  </span>
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={modalStrokes == null || modalStrokes < 1}
-                onClick={confirmModalScore}
-                className="shrink-0 px-4 py-2.5 rounded-xl bg-primary text-white text-[14px] font-bold disabled:opacity-40"
-              >
-                Enter
-              </button>
             </div>
 
-            <div className="overflow-y-auto px-4 pt-4 pb-5 flex-1 min-h-0 space-y-5">
-              <div className={`grid gap-4 ${showTee ? 'grid-cols-[1fr_1fr_auto]' : 'grid-cols-2'}`}>
-                <div className="flex flex-col items-center">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Score</p>
-                  <div className="w-full max-w-[5.25rem] rounded-[2rem] bg-surface-container-high/90 py-2.5 flex flex-col items-center gap-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-                    <button
-                      type="button"
-                      aria-label="Increase score"
-                      onClick={() => bumpModalStrokes(1)}
-                      className="w-10 h-10 rounded-full bg-white text-primary font-bold text-xl leading-none shadow-sm border border-primary/8"
-                    >
-                      +
-                    </button>
-                    <span className="font-headline text-[2.35rem] font-bold text-primary tabular-nums leading-none py-1">
-                      {strokesVal}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label="Decrease score"
-                      onClick={() => bumpModalStrokes(-1)}
-                      className="w-10 h-10 rounded-full bg-white text-primary font-bold text-xl leading-none shadow-sm border border-primary/8"
-                    >
-                      −
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Putts</p>
-                  <div className="w-full max-w-[5.25rem] rounded-[2rem] bg-surface-container-high/90 py-2.5 flex flex-col items-center gap-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-                    <button
-                      type="button"
-                      aria-label="Increase putts"
-                      onClick={() => bumpModalPutts(1)}
-                      className="w-10 h-10 rounded-full bg-white text-primary font-bold text-xl leading-none shadow-sm border border-primary/8"
-                    >
-                      +
-                    </button>
-                    <span className="font-headline text-[2.35rem] font-bold text-primary tabular-nums leading-none py-1">
-                      {modalPutts}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label="Decrease putts"
-                      onClick={() => bumpModalPutts(-1)}
-                      className="w-10 h-10 rounded-full bg-white text-primary font-bold text-xl leading-none shadow-sm border border-primary/8"
-                    >
-                      −
-                    </button>
-                  </div>
-                </div>
-
-                {showTee && (
-                  <div className="flex flex-col items-center min-w-[7.5rem]">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Tee shot</p>
-                    <div className="relative w-[7.25rem] h-[7.25rem]">
-                      {[
-                        { id: 'S', label: 'north', top: '0', left: '50%', transform: 'translateX(-50%)' },
-                        { id: 'R', label: 'east', top: '50%', right: '0', transform: 'translateY(-50%)' },
-                        { id: 'LNG', label: 'south', bottom: '0', left: '50%', transform: 'translateX(-50%)' },
-                        { id: 'L', label: 'west', top: '50%', left: '0', transform: 'translateY(-50%)' },
-                      ].map((d) => {
-                        const sel = modalFairway === false && modalTeeDir === d.id;
-                        return (
-                          <button
-                            key={d.id}
-                            type="button"
-                            aria-label={`Miss ${d.id}`}
-                            onClick={() => {
-                              setModalFairway(false);
-                              setModalTeeDir(d.id);
-                            }}
-                            className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${
-                              sel
-                                ? 'bg-primary text-white'
-                                : 'bg-surface-container-high text-on-surface-variant'
-                            }`}
-                            style={{
-                              top: d.top,
-                              bottom: d.bottom,
-                              left: d.left,
-                              right: d.right,
-                              transform: d.transform,
-                            }}
-                          >
-                            <span className="material-symbols-outlined text-[18px]">
-                              {d.id === 'S' ? 'keyboard_arrow_up'
-                                : d.id === 'LNG' ? 'keyboard_arrow_down'
-                                  : d.id === 'L' ? 'keyboard_arrow_left'
-                                    : 'keyboard_arrow_right'}
-                            </span>
-                          </button>
-                        );
-                      })}
+            <div className="overflow-y-auto p-4 space-y-5 flex-1 min-h-0">
+              <div>
+                <p className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center mb-3">Strokes</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {strokePresetsForPar(scoreModal.par).map((n) => {
+                    const diff = n - scoreModal.par;
+                    const isSel = modalStrokes === n && modalManualScoreDraft === '';
+                    const label = strokeRelativeLabel(n, scoreModal.par);
+                    return (
                       <button
+                        key={n}
                         type="button"
+                        title={label}
                         onClick={() => {
-                          setModalFairway(true);
-                          setModalTeeDir(null);
+                          setModalStrokes(n);
+                          setModalManualScoreDraft('');
+                          setModalPutts((p) => Math.min(p, n));
                         }}
-                        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[3.35rem] h-[3.35rem] rounded-full font-bold text-[12px] tracking-wide ${
-                          modalFairway === true
-                            ? 'bg-primary text-white shadow-md'
-                            : 'bg-primary/15 text-primary'
+                        className={`aspect-square flex flex-col items-center justify-center rounded-xl border-2 transition-all min-h-[4.25rem] hole-chip ${
+                          isSel
+                            ? 'border-secondary-fixed bg-secondary-fixed/15'
+                            : 'border-surface-container'
                         }`}
                       >
-                        HIT
+                        <span className={`font-headline text-3xl text-primary ${isSel ? 'font-bold' : ''}`}>{n}</span>
+                        {isSel && (
+                          <span className={`text-[10px] font-bold uppercase -mt-0.5 tracking-tight ${diff === -1 ? 'text-secondary' : diff < 0 ? 'text-primary' : diff === 0 ? 'text-on-surface-variant' : 'text-error'}`}>
+                            {label}
+                          </span>
+                        )}
                       </button>
-                    </div>
+                    );
+                  })}
+                </div>
+                <label className="block mt-4">
+                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center w-full block mb-2">Other</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    placeholder="8 or 9"
+                    value={modalManualScoreDraft}
+                    onChange={(e) => {
+                      let raw = e.target.value.replace(/\D/g, '').slice(0, 2);
+                      const num = parseInt(raw, 10);
+                      if (raw.length === 2 && Number.isFinite(num) && num > 15) {
+                        raw = raw.slice(0, 1);
+                      }
+                      const n = parseInt(raw, 10);
+                      setModalManualScoreDraft(raw);
+                      if (raw === '') {
+                        setModalStrokes(null);
+                        return;
+                      }
+                      if (!Number.isFinite(n) || n < 1 || n > 15) return;
+                      setModalStrokes(n);
+                      setModalPutts((p) => Math.min(p, n));
+                      const presets = strokePresetsForPar(scoreModal.par);
+                      if (presets.includes(n) && raw === String(n)) {
+                        setModalManualScoreDraft('');
+                      }
+                    }}
+                    className="score-input w-full h-12 px-4 rounded-lg border-2 border-outline-variant/40 bg-white text-center font-headline text-xl text-primary font-bold placeholder:text-on-surface-variant/40 placeholder:font-normal focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </label>
+              </div>
+
+              <div>
+                <p className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center mb-3">Putts</p>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    aria-label="Fewer putts"
+                    onClick={() => bumpModalPutts(-1)}
+                    className="w-11 h-11 rounded-xl border border-primary/12 bg-white text-primary text-xl font-bold"
+                  >
+                    −
+                  </button>
+                  <span className="font-headline text-[2.5rem] font-bold text-primary tabular-nums min-w-[3rem] text-center leading-none">
+                    {modalPutts}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="More putts"
+                    onClick={() => bumpModalPutts(1)}
+                    className="w-11 h-11 rounded-xl border border-primary/12 bg-white text-primary text-xl font-bold"
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="flex gap-2 mt-3 justify-center">
+                  {[0, 1, 2, 3].map((n) => (
                     <button
+                      key={n}
                       type="button"
-                      onClick={() => {
-                        setModalFairway(false);
-                        setModalTeeDir(null);
-                      }}
-                      className={`mt-2 px-3 py-1.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1 ${
-                        modalFairway === false && modalTeeDir == null
-                          ? 'bg-primary text-white'
-                          : 'bg-surface-container-high text-on-surface-variant'
+                      onClick={() => setModalPutts(n)}
+                      className={`w-12 py-2 rounded-lg text-[13px] font-bold tabular-nums ${
+                        modalPutts === n ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[14px]">close</span>
-                      Mis-Hit
+                      {n}
                     </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={`grid gap-2 ${Number(scoreModal.par) >= 4 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {Number(scoreModal.par) >= 4 && (
+                  <div className="score-sheet rounded-xl p-3 space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant text-center">Fairway</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setModalFairway(true)}
+                        className={`py-2.5 rounded-lg text-[13px] font-bold ${
+                          modalFairway === true ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                        }`}
+                      >
+                        Hit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setModalFairway(false)}
+                        className={`py-2.5 rounded-lg text-[13px] font-bold ${
+                          modalFairway === false ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
+                        }`}
+                      >
+                        Miss
+                      </button>
+                    </div>
                   </div>
                 )}
-              </div>
-
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setModalGir((g) => !g)}
-                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-bold border transition-colors ${
-                    modalGir
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-white text-primary border-primary/15'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[18px]">flag</span>
-                  Green in regulation
-                </button>
-              </div>
-
-              <div className="flex justify-center">
-                <div className="inline-flex p-1 rounded-full bg-surface-container-high">
+                <div className="score-sheet rounded-xl p-3 space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant text-center">GIR</p>
                   <button
                     type="button"
-                    onClick={() => setScoreModalMode('basic')}
-                    className={`px-5 py-2 rounded-full text-[12px] font-bold ${
-                      scoreModalMode === 'basic' ? 'bg-primary text-white' : 'text-on-surface-variant'
+                    onClick={() => setModalGir((g) => !g)}
+                    className={`w-full py-2.5 rounded-lg text-[13px] font-bold ${
+                      modalGir ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'
                     }`}
                   >
-                    Basic
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setScoreModalMode('advanced')}
-                    className={`px-5 py-2 rounded-full text-[12px] font-bold ${
-                      scoreModalMode === 'advanced' ? 'bg-primary text-white' : 'text-on-surface-variant'
-                    }`}
-                  >
-                    Advanced
+                    {modalGir ? 'Yes' : 'No'}
                   </button>
                 </div>
               </div>
 
-              {scoreModalMode === 'advanced' && (
-                <div className="space-y-4">
-                  {matchJunkOn ? (
+              {matchJunkOn && (
+                <details className="score-sheet rounded-xl overflow-hidden group">
+                  <summary className="list-none cursor-pointer px-3.5 py-3 flex items-center justify-between text-[12px] font-semibold text-on-surface-variant select-none">
+                    <span>Junk marks</span>
+                    <span className="material-symbols-outlined text-lg group-open:rotate-180 transition-transform">expand_more</span>
+                  </summary>
+                  <div className="border-t border-primary/8 px-3 pb-3">
                     <ScoreModalJunkSection
                       matchData={matchData}
                       scoreModal={scoreModal}
@@ -2850,26 +2792,24 @@ const ScorecardScreen = () => {
                       modalJunk={modalJunk}
                       onToggleJunk={toggleModalJunk}
                     />
-                  ) : (
-                    <p className="text-[13px] text-on-surface-variant text-center px-2">
-                      Junk marks aren’t on for this round. Turn junk on when you start a round to track Sandy, Snake, and more.
-                    </p>
-                  )}
-                </div>
+                  </div>
+                </details>
               )}
+            </div>
 
+            <div className="p-4 bg-white border-t border-surface-container flex-shrink-0">
               <button
                 type="button"
-                onClick={closeScoreModal}
-                className="w-full text-center text-[13px] font-semibold text-on-surface-variant py-1"
+                disabled={modalStrokes == null || modalStrokes < 1}
+                onClick={confirmModalScore}
+                className="w-full py-4 bg-primary text-on-primary rounded-lg font-label font-bold text-base active:scale-[0.98] transition-transform disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed"
               >
-                Cancel
+                Confirm score
               </button>
             </div>
           </div>
         </div>
-        );
-      })()}
+      )}
 
 
       <BottomNav />
