@@ -1521,7 +1521,13 @@ const ScorecardScreen = () => {
   const [finishRoundAwaitingConfirm, setFinishRoundAwaitingConfirm] = useState(false);
   const [holeNavBusy, setHoleNavBusy] = useState(false);
   const [viewHole, setViewHole] = useState(null);
-  const [myScoreOpen, setMyScoreOpen] = useState(false);
+  const [hideMyRoundScore, setHideMyRoundScore] = useState(() => {
+    try {
+      return localStorage.getItem('sandbags_hide_my_round_score') === '1';
+    } catch (e) {
+      return false;
+    }
+  });
   const finishConfirmTimeoutRef = useRef(null);
   const requestedMatchId = (searchParams.get('matchId') || '').trim();
   const requestedMode = (searchParams.get('mode') || '').trim().toLowerCase();
@@ -1818,25 +1824,6 @@ const ScorecardScreen = () => {
   };
 
   const meRow = scoreboardPlayers.find((p) => p.user_id === user?.id);
-  const myViewScore = meRow?.holes?.find((s) => Number(s.hole_number) === Number(viewHoleNum));
-  const myViewStrokes = myViewScore?.strokes != null && Number(myViewScore.strokes) >= 1
-    ? Number(myViewScore.strokes)
-    : null;
-  const myNetByHole = meRow?.net_strokes_by_hole || meRow?.netStrokesByHole || {};
-  const myRecv = myNetByHole[viewHoleNum] || myNetByHole[String(viewHoleNum)] || 0;
-  const myDisplayHoleStrokes =
-    myViewStrokes != null && netScoreView
-      ? Math.max(1, myViewStrokes - Number(myRecv || 0))
-      : myViewStrokes;
-  const myHoleVsPar =
-    myDisplayHoleStrokes != null && viewHolePar !== '?'
-      ? myDisplayHoleStrokes - Number(viewHolePar)
-      : null;
-  const myHoleVsParLabel =
-    myHoleVsPar == null ? null
-      : myHoleVsPar === 0 ? 'E'
-        : myHoleVsPar > 0 ? `+${myHoleVsPar}`
-          : String(myHoleVsPar);
   const myRoundToPar = meRow
     ? (netScoreView ? meRow.netToPar : meRow.toPar)
     : null;
@@ -1845,6 +1832,15 @@ const ScorecardScreen = () => {
       : myRoundToPar === 0 ? 'E'
         : myRoundToPar > 0 ? `+${myRoundToPar}`
           : String(myRoundToPar);
+  const toggleHideMyRoundScore = () => {
+    setHideMyRoundScore((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sandbags_hide_my_round_score', next ? '1' : '0');
+      } catch (e) { /* ignore */ }
+      return next;
+    });
+  };
 
   const runFinishRound = async () => {
     if (!matchData || finishing) return;
@@ -1981,42 +1977,32 @@ const ScorecardScreen = () => {
           </div>
         </section>
 
-        <div className="rise-in score-sheet rounded-xl overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setMyScoreOpen((o) => !o)}
-            className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left"
-            aria-expanded={myScoreOpen}
-          >
-            <span className="text-[12px] font-semibold text-on-surface-variant">
-              Your score
-              <span className="ml-2 tabular-nums text-primary font-bold">
-                {myDisplayHoleStrokes != null ? myDisplayHoleStrokes : '—'}
-                {myHoleVsParLabel != null ? ` ${myHoleVsParLabel}` : ''}
-                <span className="text-on-surface-variant font-medium"> · {myRoundToParLabel}</span>
-              </span>
-            </span>
-            <span className={`material-symbols-outlined text-lg text-on-surface-variant transition-transform ${myScoreOpen ? 'rotate-180' : ''}`}>
-              expand_more
-            </span>
-          </button>
-          {myScoreOpen && (
-            <div className="grid grid-cols-2 divide-x divide-primary/8 border-t border-primary/8">
-              <div className="px-3.5 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">This hole</p>
-                <p className="mt-0.5 text-[1.5rem] font-bold tabular-nums leading-none text-primary">
-                  {myDisplayHoleStrokes != null ? myDisplayHoleStrokes : '—'}
-                  {myHoleVsParLabel != null && (
-                    <span className="ml-1.5 text-[13px] font-semibold text-on-surface-variant">{myHoleVsParLabel}</span>
-                  )}
-                </p>
-              </div>
-              <div className="px-3.5 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Round</p>
-                <p className="mt-0.5 text-[1.5rem] font-bold tabular-nums leading-none text-primary">
-                  {myRoundToParLabel}
-                </p>
-              </div>
+        <div className="rise-in flex items-center justify-end gap-2 min-h-[1.25rem]">
+          {hideMyRoundScore ? (
+            <button
+              type="button"
+              onClick={toggleHideMyRoundScore}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-on-surface-variant"
+              aria-label="Show your round score"
+            >
+              <span className="material-symbols-outlined text-[16px]">visibility</span>
+              Show score
+            </button>
+          ) : (
+            <div className="inline-flex items-center gap-1.5">
+              <p className="text-[12px] text-on-surface-variant">
+                Your score{' '}
+                <span className="font-bold tabular-nums text-primary">{myRoundToParLabel}</span>
+              </p>
+              <button
+                type="button"
+                onClick={toggleHideMyRoundScore}
+                className="p-0.5 text-on-surface-variant/70 hover:text-on-surface-variant"
+                aria-label="Hide your round score"
+                title="Hide score"
+              >
+                <span className="material-symbols-outlined text-[16px]">visibility_off</span>
+              </button>
             </div>
           )}
         </div>
@@ -2097,12 +2083,11 @@ const ScorecardScreen = () => {
                       <p className={`text-[17px] font-semibold truncate ${isMe ? 'text-primary' : 'text-on-surface'}`}>
                         {isMe ? 'You' : player.display_name}
                       </p>
-                      <p className="text-[12px] text-on-surface-variant mt-0.5 truncate">
-                        {relLabel
-                          ? relLabel
-                          : (metaBits.length > 0 ? metaBits.join(' · ') : 'Tap to enter score')}
-                        {relLabel && metaBits.length > 0 ? ` · ${metaBits.join(' · ')}` : ''}
-                      </p>
+                      {(relLabel || metaBits.length > 0) && (
+                        <p className="text-[12px] text-on-surface-variant mt-0.5 truncate">
+                          {[relLabel, ...metaBits].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
                     </div>
                     <div className="flex flex-col items-center gap-1 shrink-0">
                       <div
