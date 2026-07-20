@@ -1519,6 +1519,7 @@ const ScorecardScreen = () => {
   const [loading, setLoading] = useState(true);
   const [finishing, setFinishing] = useState(false);
   const [finishRoundAwaitingConfirm, setFinishRoundAwaitingConfirm] = useState(false);
+  const [holeNavBusy, setHoleNavBusy] = useState(false);
   const finishConfirmTimeoutRef = useRef(null);
   const requestedMatchId = (searchParams.get('matchId') || '').trim();
   const requestedMode = (searchParams.get('mode') || '').trim().toLowerCase();
@@ -1789,14 +1790,26 @@ const ScorecardScreen = () => {
   const allInHaveScoreCurrentHole = baseAllInHaveScore && teamSidesHaveBestBall;
   const canGoNextHole = allInHaveScoreCurrentHole && !atFinalHole;
 
-  const advanceHole = async () => {
-    if (!matchData || !canGoNextHole) return;
-    const next = Math.min(matchData.current_hole + 1, 18);
+  const goToHole = async (holeNum) => {
+    if (!matchData || holeNavBusy) return;
+    const next = Math.min(18, Math.max(1, Number(holeNum)));
+    if (!Number.isInteger(next) || next === Number(matchData.current_hole)) return;
+    setHoleNavBusy(true);
     try {
       await API.updateMatch(matchData.id, { currentHole: next });
-      loadData();
+      await loadData();
     } catch (e) { console.error(e); }
+    setHoleNavBusy(false);
   };
+
+  const advanceHole = async () => {
+    if (!matchData || !canGoNextHole) return;
+    await goToHole(Math.min(matchData.current_hole + 1, 18));
+  };
+
+  const holeStrip = holes.length >= 18
+    ? holes
+    : Array.from({ length: 18 }, (_, i) => holes.find((h) => h.hole_number === i + 1) || { hole_number: i + 1 });
 
   const runFinishRound = async () => {
     if (!matchData || finishing) return;
@@ -1860,46 +1873,93 @@ const ScorecardScreen = () => {
   return (
     <div className="min-h-[100dvh]">
       <TopHeader title="Play" />
-      <main className="page-pad phone-page px-4 space-y-4" style={{ paddingBottom: 'calc(var(--nav-h) + 5.75rem)' }}>
-        <section className="rise-in flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-on-surface-variant truncate">
-              {matchData.course_name}
-            </p>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <h2 className="font-headline italic text-[2.75rem] text-primary leading-none tabular-nums">
-                {currentHoleNum}
-              </h2>
-              <div className="pb-1 min-w-0">
-                <p className="text-[15px] font-bold text-primary leading-tight">
-                  Par {currentHolePar}
-                </p>
-                <p className="text-[12px] text-on-surface-variant truncate">
-                  {currentHoleYdsLabel}
-                  {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
-                </p>
+      <main className="page-pad phone-page px-4 space-y-4" style={{ paddingBottom: 'calc(var(--nav-h) + 6.75rem)' }}>
+        <section className="rise-in space-y-3">
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-on-surface-variant truncate">
+                {matchData.course_name}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <button
+                  type="button"
+                  aria-label="Previous hole"
+                  disabled={holeNavBusy || currentHoleNum <= 1}
+                  onClick={() => goToHole(currentHoleNum - 1)}
+                  className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-primary disabled:opacity-30 bg-white border border-primary/10"
+                >
+                  <span className="material-symbols-outlined text-[22px]">chevron_left</span>
+                </button>
+                <h2 className="font-headline italic text-[2.75rem] text-primary leading-none tabular-nums min-w-[2.5rem] text-center">
+                  {currentHoleNum}
+                </h2>
+                <button
+                  type="button"
+                  aria-label="Next hole"
+                  disabled={holeNavBusy || currentHoleNum >= 18}
+                  onClick={() => goToHole(currentHoleNum + 1)}
+                  className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-primary disabled:opacity-30 bg-white border border-primary/10"
+                >
+                  <span className="material-symbols-outlined text-[22px]">chevron_right</span>
+                </button>
+                <div className="pb-0.5 min-w-0 pl-1">
+                  <p className="text-[15px] font-bold text-primary leading-tight">
+                    Par {currentHolePar}
+                  </p>
+                  <p className="text-[12px] text-on-surface-variant truncate">
+                    {currentHoleYdsLabel}
+                    {matchData.tee_name ? ` · ${matchData.tee_name}` : ''}
+                  </p>
+                </div>
               </div>
             </div>
+            <div className="flex flex-col items-end gap-2 shrink-0 pb-1">
+              {matchIsNet && !matchIsStampede && (
+                <div className="bg-white border border-primary/10 p-0.5 rounded-lg flex">
+                  <button type="button" onClick={() => setScoringMode('gross')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>G</button>
+                  <button type="button" onClick={() => setScoringMode('net')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'net' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>N</button>
+                </div>
+              )}
+              <button
+                type="button"
+                disabled={finishing}
+                onClick={onFinishRoundButtonClick}
+                className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md ${
+                  finishRoundAwaitingConfirm
+                    ? 'bg-secondary-fixed text-on-secondary-fixed'
+                    : 'text-on-surface-variant'
+                } disabled:opacity-60`}
+              >
+                {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
+              </button>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-2 shrink-0 pb-1">
-            {matchIsNet && !matchIsStampede && (
-              <div className="bg-white border border-primary/10 p-0.5 rounded-lg flex">
-                <button type="button" onClick={() => setScoringMode('gross')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'gross' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>G</button>
-                <button type="button" onClick={() => setScoringMode('net')} className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold ${scoringMode === 'net' ? 'bg-primary text-white' : 'text-on-surface-variant'}`}>N</button>
-              </div>
-            )}
-            <button
-              type="button"
-              disabled={finishing}
-              onClick={onFinishRoundButtonClick}
-              className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-md ${
-                finishRoundAwaitingConfirm
-                  ? 'bg-secondary-fixed text-on-secondary-fixed'
-                  : 'text-on-surface-variant'
-              } disabled:opacity-60`}
-            >
-              {finishing ? '…' : finishRoundAwaitingConfirm ? 'Confirm?' : 'Finish'}
-            </button>
+          <div className="flex gap-1 overflow-x-auto hide-scrollbar -mx-0.5 px-0.5" role="navigation" aria-label="Holes">
+            {holeStrip.map((h) => {
+              const n = h.hole_number;
+              const sel = Number(n) === Number(currentHoleNum);
+              const hasAnyScore = scoreboardPlayers.some((p) =>
+                p.holes?.some((s) => Number(s.hole_number) === Number(n) && s.strokes != null && Number(s.strokes) >= 1)
+              );
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  disabled={holeNavBusy}
+                  onClick={() => goToHole(n)}
+                  aria-current={sel ? 'true' : undefined}
+                  className={`shrink-0 w-9 h-9 rounded-lg text-[13px] font-bold tabular-nums transition-colors disabled:opacity-60 ${
+                    sel
+                      ? 'bg-primary text-white'
+                      : hasAnyScore
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-white border border-primary/10 text-on-surface-variant'
+                  }`}
+                >
+                  {n}
+                </button>
+              );
+            })}
           </div>
         </section>
 
@@ -1973,8 +2033,23 @@ const ScorecardScreen = () => {
                   <tr className="bg-primary text-[#f8f9fa] font-label text-[10px] uppercase tracking-[0.15em]">
                     <th className="py-3 px-3 font-bold sticky left-0 bg-primary z-20 min-w-[96px] shadow-[4px_0_12px_-4px_rgba(0,0,0,0.2)]">Hole</th>
                     {holes.map(h => (
-                      <th key={h.hole_number} className={`py-4 px-2 font-bold text-center min-w-[40px] ${h.hole_number === matchData.current_hole ? 'bg-secondary text-on-secondary-fixed' : ''}`}>
-                        {h.hole_number}
+                      <th
+                        key={h.hole_number}
+                        className={`py-2 px-1 font-bold text-center min-w-[40px] ${h.hole_number === matchData.current_hole ? 'bg-secondary text-on-secondary-fixed' : ''}`}
+                      >
+                        <button
+                          type="button"
+                          disabled={holeNavBusy}
+                          onClick={() => goToHole(h.hole_number)}
+                          className={`w-full min-h-[2.25rem] rounded-md font-bold tabular-nums ${
+                            h.hole_number === matchData.current_hole
+                              ? 'text-on-secondary-fixed'
+                              : 'text-inherit hover:bg-white/10'
+                          }`}
+                          aria-label={`Go to hole ${h.hole_number}`}
+                        >
+                          {h.hole_number}
+                        </button>
                       </th>
                     ))}
                     <th className="py-4 px-3 font-bold text-center bg-primary-container min-w-[40px]">OUT</th>
@@ -2346,10 +2421,10 @@ const ScorecardScreen = () => {
       </main>
 
       <div
-        className="fixed inset-x-0 z-40 border-t border-primary/10 bg-[rgba(243,247,244,0.97)] backdrop-blur-md px-4 pt-2.5"
+        className="fixed inset-x-0 z-40 border-t border-primary/10 bg-[rgba(243,247,244,0.97)] backdrop-blur-md px-4 pt-4"
         style={{ bottom: 'var(--nav-h)', paddingBottom: '0.65rem' }}
       >
-        <div className="phone-page mx-auto space-y-2">
+        <div className="phone-page mx-auto space-y-3.5">
           <div className="flex items-center justify-between gap-2 px-0.5">
             <p className="text-[13px] font-semibold text-on-surface min-w-0 truncate">
               {moneyLabel != null ? (
@@ -2371,7 +2446,7 @@ const ScorecardScreen = () => {
           </div>
           <button
             type="button"
-            disabled={!canGoNextHole && !atFinalHole}
+            disabled={holeNavBusy || (!canGoNextHole && !atFinalHole)}
             onClick={() => {
               if (atFinalHole) onFinishRoundButtonClick();
               else advanceHole();
