@@ -20,7 +20,7 @@ app.get('*', (req, res) => {
 
 function startServer(port) {
   const server = app.listen(port, () => {
-    console.log(`\n  Championship Flight running on http://localhost:${port}\n`);
+    console.log(`\n  Sandbags running on http://localhost:${port}\n`);
   });
 
   server.on('error', (err) => {
